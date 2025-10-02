@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "PolarChoice - Routine personnalisée",
+  title: "Paula's Choice",
   description: "Découvrez votre routine skincare sur-mesure",
 };
 

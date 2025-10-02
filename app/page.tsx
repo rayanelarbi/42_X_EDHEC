@@ -10,7 +10,7 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center space-y-6 mb-16">
           <h1 className="text-5xl font-bold tracking-tight text-slate-900">
-            PolarChoice
+            Paula's Choice
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
             Découvrez votre routine skincare personnalisée en quelques étapes simples.
