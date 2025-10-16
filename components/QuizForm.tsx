@@ -6,20 +6,23 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
 
 const QuizSchema = z.object({
-  sex: z.enum(["male", "female", "other"]),
+  sex: z.enum(["male", "female"]),
   ageRange: z.enum(["18-25", "26-35", "36-45", "46+"]),
-  skinType: z.enum(["dry", "oily", "combination", "sensitive"]),
-  mainConcern: z.enum(["acne", "pores", "redness", "texture", "wrinkles", "dullness"]),
-  severity: z.number().min(1).max(5),
-  sensitivities: z.array(z.string()),
-  currentRoutineLevel: z.enum(["none", "basic", "intermediate", "advanced"]),
-  desiredSimplicity: z.enum(["minimal", "moderate", "comprehensive"]),
-  budget: z.enum(["affordable", "moderate", "premium"]),
+  location: z.enum(["city", "countryside", "humid", "dry"]),
+  skinType: z.enum(["dry", "normal", "combination", "oily", "sensitive"]),
+  skinConcerns: z.array(z.string()),
+  objectives: z.array(z.string()).max(3, "Maximum 3 objectifs"),
+  dermaConditions: z.array(z.string()),
+  currentRoutineLevel: z.enum(["none", "1-2", "3-4", "5+"]),
+  productsUsed: z.array(z.string()),
+  sunExposure: z.enum(["low", "medium", "high"]),
+  stressLevel: z.enum(["low", "medium", "high"]),
+  preferences: z.array(z.string()),
+  budget: z.enum(["<20", "20-40", "40-60", "60+"]),
   photoConsent: z.boolean().refine((val) => val === true, {
     message: "Vous devez accepter pour continuer",
   }),
@@ -34,13 +37,15 @@ export default function QuizForm() {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<QuizFormData>({
     resolver: zodResolver(QuizSchema),
     defaultValues: {
-      sensitivities: [],
-      severity: 3,
+      skinConcerns: [],
+      objectives: [],
+      dermaConditions: [],
+      productsUsed: [],
+      preferences: [],
       photoConsent: false,
     },
   });
@@ -54,7 +59,7 @@ export default function QuizForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Questionnaire personnalisé</CardTitle>
+          <CardTitle>Questionnaire personnalisé Paula's Choice</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Sexe */}
@@ -68,14 +73,13 @@ export default function QuizForm() {
               <option value="">Sélectionnez</option>
               <option value="male">Homme</option>
               <option value="female">Femme</option>
-              <option value="other">Autre</option>
             </select>
             {errors.sex && (
               <p className="text-sm text-destructive">{errors.sex.message}</p>
             )}
           </div>
 
-          {/* Tranche d'âge */}
+          {/* Âge */}
           <div className="space-y-2">
             <Label htmlFor="ageRange">Tranche d'âge</Label>
             <select
@@ -94,6 +98,25 @@ export default function QuizForm() {
             )}
           </div>
 
+          {/* Zone */}
+          <div className="space-y-2">
+            <Label htmlFor="location">Zone géographique / Climat</Label>
+            <select
+              {...register("location")}
+              id="location"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Sélectionnez</option>
+              <option value="city">Ville</option>
+              <option value="countryside">Campagne</option>
+              <option value="humid">Climat humide</option>
+              <option value="dry">Climat sec</option>
+            </select>
+            {errors.location && (
+              <p className="text-sm text-destructive">{errors.location.message}</p>
+            )}
+          </div>
+
           {/* Type de peau */}
           <div className="space-y-2">
             <Label htmlFor="skinType">Type de peau</Label>
@@ -104,8 +127,9 @@ export default function QuizForm() {
             >
               <option value="">Sélectionnez</option>
               <option value="dry">Sèche</option>
-              <option value="oily">Grasse</option>
+              <option value="normal">Normale</option>
               <option value="combination">Mixte</option>
+              <option value="oily">Grasse</option>
               <option value="sensitive">Sensible</option>
             </select>
             {errors.skinType && (
@@ -113,73 +137,89 @@ export default function QuizForm() {
             )}
           </div>
 
-          {/* Problème principal */}
+          {/* Tendances/Préoccupations */}
           <div className="space-y-2">
-            <Label htmlFor="mainConcern">Préoccupation principale</Label>
-            <select
-              {...register("mainConcern")}
-              id="mainConcern"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Sélectionnez</option>
-              <option value="acne">Acné</option>
-              <option value="pores">Pores dilatés</option>
-              <option value="redness">Rougeurs</option>
-              <option value="texture">Texture irrégulière</option>
-              <option value="wrinkles">Rides</option>
-              <option value="dullness">Teint terne</option>
-            </select>
-            {errors.mainConcern && (
-              <p className="text-sm text-destructive">{errors.mainConcern.message}</p>
-            )}
-          </div>
-
-          {/* Intensité */}
-          <div className="space-y-2">
-            <Label htmlFor="severity">Intensité (1 = léger, 5 = sévère)</Label>
-            <Input
-              type="number"
-              id="severity"
-              min={1}
-              max={5}
-              {...register("severity", { valueAsNumber: true })}
-            />
-            {errors.severity && (
-              <p className="text-sm text-destructive">{errors.severity.message}</p>
-            )}
-          </div>
-
-          {/* Sensibilités */}
-          <div className="space-y-2">
-            <Label>Sensibilités (cochez si applicable)</Label>
+            <Label>Tendances de votre peau (plusieurs choix possibles)</Label>
             <div className="space-y-2">
-              {["Parfums", "Alcool", "Huiles essentielles", "Rétinol"].map((item) => (
+              {["Brillance", "Rougeurs", "Sécheresse", "Pores dilatés", "Boutons"].map(
+                (item) => (
+                  <label key={item} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      value={item}
+                      {...register("skinConcerns")}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm">{item}</span>
+                  </label>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Objectifs (max 3) */}
+          <div className="space-y-2">
+            <Label>Objectifs (maximum 3)</Label>
+            <div className="space-y-2">
+              {[
+                "Hydrater",
+                "Réduire acné/points noirs",
+                "Lisser rides",
+                "Réduire taches",
+                "Uniformiser teint",
+                "Réduire rougeurs",
+                "Fermeté",
+                "Anti-pollution",
+              ].map((item) => (
                 <label key={item} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     value={item}
-                    {...register("sensitivities")}
+                    {...register("objectives")}
                     className="h-4 w-4 rounded border-gray-300"
                   />
                   <span className="text-sm">{item}</span>
                 </label>
               ))}
             </div>
+            {errors.objectives && (
+              <p className="text-sm text-destructive">{errors.objectives.message}</p>
+            )}
           </div>
 
-          {/* Niveau routine actuel */}
+          {/* Conditions dermato */}
           <div className="space-y-2">
-            <Label htmlFor="currentRoutineLevel">Routine actuelle</Label>
+            <Label>Conditions dermatologiques (si applicable)</Label>
+            <div className="space-y-2">
+              {["Acné sévère", "Eczéma", "Rosacée", "Psoriasis", "Aucune"].map(
+                (item) => (
+                  <label key={item} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      value={item}
+                      {...register("dermaConditions")}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm">{item}</span>
+                  </label>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Routine actuelle */}
+          <div className="space-y-2">
+            <Label htmlFor="currentRoutineLevel">Nombre de produits actuellement utilisés</Label>
             <select
               {...register("currentRoutineLevel")}
               id="currentRoutineLevel"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
+            >
               <option value="">Sélectionnez</option>
               <option value="none">Aucune routine</option>
-              <option value="basic">Basique (nettoyant + hydratant)</option>
-              <option value="intermediate">Intermédiaire (+ sérums)</option>
-              <option value="advanced">Avancée (routine complète)</option>
+              <option value="1-2">1-2 produits</option>
+              <option value="3-4">3-4 produits</option>
+              <option value="5+">5+ produits</option>
             </select>
             {errors.currentRoutineLevel && (
               <p className="text-sm text-destructive">
@@ -188,38 +228,104 @@ export default function QuizForm() {
             )}
           </div>
 
-          {/* Simplicité désirée */}
+          {/* Produits utilisés */}
           <div className="space-y-2">
-            <Label htmlFor="desiredSimplicity">Simplicité souhaitée</Label>
+            <Label>Produits déjà utilisés (cochez si applicable)</Label>
+            <div className="space-y-2">
+              {[
+                "Nettoyant",
+                "Tonique",
+                "Sérum",
+                "Hydratant",
+                "AHA/BHA",
+                "SPF",
+                "Rétinol",
+              ].map((item) => (
+                <label key={item} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    value={item}
+                    {...register("productsUsed")}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm">{item}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Exposition soleil */}
+          <div className="space-y-2">
+            <Label htmlFor="sunExposure">Exposition au soleil</Label>
             <select
-              {...register("desiredSimplicity")}
-              id="desiredSimplicity"
+              {...register("sunExposure")}
+              id="sunExposure"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
+            >
               <option value="">Sélectionnez</option>
-              <option value="minimal">Minimale (3-4 étapes)</option>
-              <option value="moderate">Modérée (5-6 étapes)</option>
-              <option value="comprehensive">Complète (7+ étapes)</option>
+              <option value="low">Faible (intérieur, peu de sorties)</option>
+              <option value="medium">Moyenne (trajets quotidiens)</option>
+              <option value="high">Élevée (extérieur fréquent)</option>
             </select>
-            {errors.desiredSimplicity && (
-              <p className="text-sm text-destructive">
-                {errors.desiredSimplicity.message}
-              </p>
+            {errors.sunExposure && (
+              <p className="text-sm text-destructive">{errors.sunExposure.message}</p>
             )}
+          </div>
+
+          {/* Stress */}
+          <div className="space-y-2">
+            <Label htmlFor="stressLevel">Niveau de stress / Qualité sommeil</Label>
+            <select
+              {...register("stressLevel")}
+              id="stressLevel"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Sélectionnez</option>
+              <option value="low">Faible</option>
+              <option value="medium">Moyen</option>
+              <option value="high">Élevé</option>
+            </select>
+            {errors.stressLevel && (
+              <p className="text-sm text-destructive">{errors.stressLevel.message}</p>
+            )}
+          </div>
+
+          {/* Préférences */}
+          <div className="space-y-2">
+            <Label>Préférences produits</Label>
+            <div className="space-y-2">
+              {[
+                "Sans parfum",
+                "Vegan",
+                "Textures légères",
+                "Sans ingrédients controversés",
+              ].map((item) => (
+                <label key={item} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    value={item}
+                    {...register("preferences")}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <span className="text-sm">{item}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Budget */}
           <div className="space-y-2">
-            <Label htmlFor="budget">Budget</Label>
+            <Label htmlFor="budget">Budget mensuel</Label>
             <select
               {...register("budget")}
               id="budget"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             >
               <option value="">Sélectionnez</option>
-              <option value="affordable">Abordable ({"<"} 50€/mois)</option>
-              <option value="moderate">Modéré (50-100€/mois)</option>
-              <option value="premium">Premium ({">"}100€/mois)</option>
+              <option value="<20">Moins de 20€</option>
+              <option value="20-40">20-40€</option>
+              <option value="40-60">40-60€</option>
+              <option value="60+">Plus de 60€</option>
             </select>
             {errors.budget && (
               <p className="text-sm text-destructive">{errors.budget.message}</p>
@@ -236,8 +342,8 @@ export default function QuizForm() {
               />
               <span className="text-sm">
                 J'accepte de prendre une photo de mon visage pour obtenir une
-                simulation personnalisée. Ma photo sera traitée localement et ne
-                sera pas transmise à des serveurs externes.
+                simulation personnalisée. Ma photo sera traitée localement et ne sera
+                pas transmise à des serveurs externes.
               </span>
             </label>
             {errors.photoConsent && (

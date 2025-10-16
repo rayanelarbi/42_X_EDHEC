@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { simulateAfter } from "@/lib/imageFilters";
+import { ProductKey } from "@/store/useAppStore";
 
 type BeforeAfterProps = {
   photoBase64: string;
+  productKey: ProductKey;
 };
 
-export default function BeforeAfter({ photoBase64 }: BeforeAfterProps) {
+export default function BeforeAfter({ photoBase64, productKey }: BeforeAfterProps) {
   const beforeCanvasRef = useRef<HTMLCanvasElement>(null);
   const afterCanvasRef = useRef<HTMLCanvasElement>(null);
   const [processed, setProcessed] = useState(false);
@@ -16,7 +18,6 @@ export default function BeforeAfter({ photoBase64 }: BeforeAfterProps) {
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
-      // Canvas "Avant"
       if (beforeCanvasRef.current) {
         const beforeCtx = beforeCanvasRef.current.getContext("2d");
         if (beforeCtx) {
@@ -26,9 +27,8 @@ export default function BeforeAfter({ photoBase64 }: BeforeAfterProps) {
         }
       }
 
-      // Canvas "Après" avec filtres
       if (afterCanvasRef.current) {
-        const afterCanvas = simulateAfter(img);
+        const afterCanvas = simulateAfter(img, productKey);
         const afterCtx = afterCanvasRef.current.getContext("2d");
         if (afterCtx) {
           afterCanvasRef.current.width = afterCanvas.width;
@@ -40,10 +40,10 @@ export default function BeforeAfter({ photoBase64 }: BeforeAfterProps) {
       setProcessed(true);
     };
     img.src = photoBase64;
-  }, [photoBase64]);
+  }, [photoBase64, productKey]);
 
   return (
-    <Card>
+    <Card className="mb-6">
       <CardHeader>
         <CardTitle>Simulation Avant / Après</CardTitle>
       </CardHeader>
@@ -51,17 +51,11 @@ export default function BeforeAfter({ photoBase64 }: BeforeAfterProps) {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <h4 className="font-medium text-center">Avant</h4>
-            <canvas
-              ref={beforeCanvasRef}
-              className="w-full rounded-lg border"
-            />
+            <canvas ref={beforeCanvasRef} className="w-full rounded-lg border" />
           </div>
           <div className="space-y-2">
             <h4 className="font-medium text-center">Après (simulation)</h4>
-            <canvas
-              ref={afterCanvasRef}
-              className="w-full rounded-lg border"
-            />
+            <canvas ref={afterCanvasRef} className="w-full rounded-lg border" />
           </div>
         </div>
         <p className="text-xs text-muted-foreground text-center mt-4">

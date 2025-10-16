@@ -1,9 +1,6 @@
-/**
- * Simule un effet "après traitement" sur une image.
- * Applique: blur léger, réduction saturation rouge, luminosité accrue, watermark.
- */
 export function simulateAfter(
-  source: HTMLImageElement | HTMLCanvasElement
+  source: HTMLImageElement | HTMLCanvasElement,
+  productKey: "duo-eclat" | "repairing-serum"
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -12,33 +9,51 @@ export function simulateAfter(
   canvas.width = source.width;
   canvas.height = source.height;
 
-  // Dessiner l'image source
   ctx.drawImage(source, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
-  // Parcourir tous les pixels
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
+  if (productKey === "duo-eclat") {
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
 
-    // Réduire la saturation du rouge (atténuer rougeurs)
-    const saturationFactor = 0.85;
-    data[i] = r * saturationFactor;
+      data[i] = r * 0.88;
 
-    // Augmenter légèrement la luminosité
-    const brightnessFactor = 1.05;
-    data[i] = Math.min(255, data[i] * brightnessFactor);
-    data[i + 1] = Math.min(255, g * brightnessFactor);
-    data[i + 2] = Math.min(255, b * brightnessFactor);
+      const brightnessFactor = 1.08;
+      data[i] = Math.min(255, data[i] * brightnessFactor);
+      data[i + 1] = Math.min(255, g * brightnessFactor);
+      data[i + 2] = Math.min(255, b * brightnessFactor);
+
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      data[i] = data[i] * 0.95 + avg * 0.05;
+      data[i + 1] = data[i + 1] * 0.95 + avg * 0.05;
+      data[i + 2] = data[i + 2] * 0.95 + avg * 0.05;
+    }
+  } else {
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      data[i] = r * 0.82;
+
+      const brightnessFactor = 1.04;
+      data[i] = Math.min(255, data[i] * brightnessFactor);
+      data[i + 1] = Math.min(255, g * brightnessFactor);
+      data[i + 2] = Math.min(255, b * brightnessFactor);
+
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      data[i] = data[i] * 0.9 + avg * 0.1;
+      data[i + 1] = data[i + 1] * 0.9 + avg * 0.1;
+      data[i + 2] = data[i + 2] * 0.9 + avg * 0.1;
+    }
   }
 
   ctx.putImageData(imageData, 0, 0);
 
-  // Appliquer un léger blur via CSS filter (hack simple)
-  // On crée un canvas temporaire avec filtre
   const tempCanvas = document.createElement("canvas");
   const tempCtx = tempCanvas.getContext("2d");
   if (!tempCtx) return canvas;
@@ -48,7 +63,6 @@ export function simulateAfter(
   tempCtx.filter = "blur(0.5px)";
   tempCtx.drawImage(canvas, 0, 0);
 
-  // Watermark "Simulation"
   tempCtx.filter = "none";
   tempCtx.font = "16px Inter, sans-serif";
   tempCtx.fillStyle = "rgba(255, 255, 255, 0.7)";

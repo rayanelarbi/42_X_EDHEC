@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Paula's Choice",
-  description: "Découvrez votre routine skincare sur-mesure",
+  description: "Discover your personalized skincare routine",
 };
 
 export default function RootLayout({
@@ -16,7 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <LanguageToggle />
+        {children}
+      </body>
     </html>
   );
 }
