@@ -70,10 +70,6 @@ export default function Home() {
             <div className="mt-12 flex justify-center items-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <span>2 min</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
                 <span>100% free</span>
               </div>
               <div className="flex items-center gap-2">
@@ -238,7 +234,7 @@ export default function Home() {
             Ready to get started?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Discover your personalized routine in 2 minutes
+            Discover your personalized routine
           </p>
           <Link href="/quiz">
             <Button size="lg" className="bg-white text-[#0065B7] hover:bg-gray-100 px-8 py-6 text-lg font-medium shadow-xl hover:shadow-2xl transition-all group">
