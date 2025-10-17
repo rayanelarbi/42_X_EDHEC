@@ -2,700 +2,346 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAppStore, QuizData } from "@/store/useAppStore";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useAppStore } from "@/store/useAppStore";
 import { translations } from "@/lib/translations";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-type QuizStep = {
-  id: keyof QuizData;
-  type: "single" | "multiple" | "checkbox";
-};
-
-const QUIZ_STEPS: QuizStep[] = [
-  { id: "sex", type: "single" },
-  { id: "ageRange", type: "single" },
-  { id: "location", type: "single" },
-  { id: "skinType", type: "single" },
-  { id: "skinConcerns", type: "multiple" },
-  { id: "objectives", type: "multiple" },
-  { id: "dermaConditions", type: "multiple" },
-  { id: "currentRoutineLevel", type: "single" },
-  { id: "productsUsed", type: "multiple" },
-  { id: "sunExposure", type: "single" },
-  { id: "stressLevel", type: "single" },
-  { id: "preferences", type: "multiple" },
-  { id: "budget", type: "single" },
+const questions = [
+  {
+    id: "sex",
+    type: "single",
+    options: [
+      { value: "male", label: "Male" },
+      { value: "female", label: "Female" },
+      { value: "non-binary", label: "Non-binary" },
+      { value: "prefer-not-to-say", label: "Prefer not to say" },
+    ],
+  },
+  {
+    id: "ageRange",
+    type: "single",
+    options: [
+      { value: "18-25", label: "18-25" },
+      { value: "26-35", label: "26-35" },
+      { value: "36-45", label: "36-45" },
+      { value: "46+", label: "46+" },
+    ],
+  },
+  {
+    id: "location",
+    type: "single",
+    options: [
+      { value: "city", label: "Urban environment" },
+      { value: "countryside", label: "Rural environment" },
+      { value: "humid", label: "Humid climate" },
+      { value: "dry", label: "Dry climate" },
+    ],
+  },
+  {
+    id: "skinType",
+    type: "single",
+    options: [
+      { value: "dry", label: "Dry" },
+      { value: "normal", label: "Normal" },
+      { value: "combination", label: "Combination" },
+      { value: "oily", label: "Oily" },
+      { value: "sensitive", label: "Sensitive" },
+    ],
+  },
+  {
+    id: "skinConcerns",
+    type: "multiple",
+    options: [
+      { value: "acne", label: "Acne & Breakouts", description: "Active breakouts, blackheads, whiteheads" },
+      { value: "hyperpigmentation", label: "Hyperpigmentation", description: "Dark spots, melasma, post-inflammatory marks" },
+      { value: "anti-aging", label: "Anti-aging", description: "Fine lines, wrinkles, loss of firmness" },
+      { value: "pores", label: "Enlarged Pores", description: "Visible pores, congestion" },
+      { value: "dryness", label: "Dryness & Dehydration", description: "Tight feeling, flakiness, lack of moisture" },
+      { value: "sensitivity", label: "Sensitivity & Redness", description: "Irritation, rosacea, reactive skin" },
+      { value: "texture", label: "Uneven Texture", description: "Roughness, bumpiness, uneven surface" },
+      { value: "dullness", label: "Dullness", description: "Lack of radiance, tired-looking skin" },
+      { value: "oiliness", label: "Excess Oil", description: "Shine, greasy feeling, sebum production" },
+    ],
+  },
+  {
+    id: "objectives",
+    type: "multiple",
+    maxSelections: 3,
+    options: [
+      { value: "anti-aging", label: "Anti-aging", description: "Reduce fine lines, improve firmness" },
+      { value: "clear-skin", label: "Clear, healthy skin", description: "Achieve balanced, blemish-free skin" },
+      { value: "even-tone", label: "Even skin tone", description: "Reduce dark spots, brighten complexion" },
+      { value: "hydration", label: "Optimal hydration", description: "Improve moisture retention" },
+      { value: "protection", label: "Sun protection", description: "Prevent UV damage, maintain skin health" },
+      { value: "prevention", label: "Prevent future damage", description: "Protect against environmental stressors" },
+      { value: "repair", label: "Skin repair", description: "Heal damage, improve skin barrier" },
+      { value: "radiance", label: "Glowing complexion", description: "Achieve healthy, luminous skin" },
+    ],
+  },
+  {
+    id: "currentRoutineLevel",
+    type: "single",
+    options: [
+      { value: "none", label: "No routine" },
+      { value: "1-2", label: "1-2 products" },
+      { value: "3-4", label: "3-4 products" },
+      { value: "5+", label: "5+ products" },
+    ],
+  },
+  {
+    id: "sunExposure",
+    type: "single",
+    options: [
+      { value: "low", label: "Low (mostly indoors)" },
+      { value: "medium", label: "Medium (some outdoor time)" },
+      { value: "high", label: "High (lots of outdoor time)" },
+    ],
+  },
+  {
+    id: "stressLevel",
+    type: "single",
+    options: [
+      { value: "low", label: "Low stress" },
+      { value: "medium", label: "Medium stress" },
+      { value: "high", label: "High stress" },
+    ],
+  },
+  {
+    id: "budget",
+    type: "single",
+    options: [
+      { value: "<20", label: "Under $20/month" },
+      { value: "20-40", label: "$20-40/month" },
+      { value: "40-60", label: "$40-60/month" },
+      { value: "60+", label: "$60+/month" },
+    ],
+  },
+  {
+    id: "dermaConditions",
+    type: "multiple",
+    options: [
+      { value: "none", label: "None", description: "No diagnosed skin conditions" },
+      { value: "acne", label: "Acne", description: "Mild to severe acne" },
+      { value: "rosacea", label: "Rosacea", description: "Facial redness and inflammation" },
+      { value: "eczema", label: "Eczema/Atopic Dermatitis", description: "Dry, itchy, inflamed skin" },
+      { value: "psoriasis", label: "Psoriasis", description: "Scaly, red patches" },
+      { value: "seborrheic-dermatitis", label: "Seborrheic Dermatitis", description: "Scaly, oily patches" },
+    ],
+  },
+  {
+    id: "preferences",
+    type: "multiple",
+    options: [
+      { value: "fragrance-free", label: "Fragrance-free", description: "No added fragrances or essential oils" },
+      { value: "cruelty-free", label: "Cruelty-free", description: "Not tested on animals" },
+      { value: "vegan", label: "Vegan", description: "No animal-derived ingredients" },
+      { value: "minimal-ingredients", label: "Minimal ingredients", description: "Simple, clean formulations" },
+      { value: "clinical-proven", label: "Clinically proven", description: "Scientifically tested efficacy" },
+      { value: "organic", label: "Organic", description: "Organic and natural ingredients" },
+    ],
+  },
 ];
 
 export default function QuizForm() {
   const router = useRouter();
-  const { setQuiz } = useAppStore();
-  const t = translations["en"].quiz;
-
+  const { language, setQuiz } = useAppStore();
+  const t = translations[language];
+  
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Partial<QuizData>>({
-    skinConcerns: [],
-    objectives: [],
-    dermaConditions: [],
-    productsUsed: [],
-    preferences: [],
-  });
-
-  const currentQuestion = QUIZ_STEPS[currentStep];
-  const progress = ((currentStep + 1) / QUIZ_STEPS.length) * 100;
-
-  // Helper pour auto-avancement sur choix unique
-  const handleSingleChoiceWithAutoAdvance = (questionId: keyof QuizData, value: any) => {
-    setAnswers({ ...answers, [questionId]: value });
-    setTimeout(() => {
-      if (currentStep < QUIZ_STEPS.length - 1) {
-        setCurrentStep(currentStep + 1);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  
+  const currentQuestion = questions[currentStep];
+  const isLastStep = currentStep === questions.length - 1;
+  
+  const handleAnswer = (value: string) => {
+    const newAnswers = { ...answers };
+    
+    if (currentQuestion.type === "multiple") {
+      if (!newAnswers[currentQuestion.id]) {
+        newAnswers[currentQuestion.id] = [];
       }
-    }, 500);
-  };
-
-  const handleNext = () => {
-    // Validation
-    const currentAnswer = answers[currentQuestion.id];
-    if (currentQuestion.type === "checkbox") {
-      if (!currentAnswer) {
-        alert(t.photoConsentRequired);
-        return;
+      
+      const currentAnswers = newAnswers[currentQuestion.id] as string[];
+      const maxSelections = currentQuestion.maxSelections || currentQuestion.options.length;
+      
+      if (currentAnswers.includes(value)) {
+        newAnswers[currentQuestion.id] = currentAnswers.filter(v => v !== value);
+      } else if (currentAnswers.length < maxSelections) {
+        newAnswers[currentQuestion.id] = [...currentAnswers, value];
       }
-    } else if (currentQuestion.type === "single") {
-      if (!currentAnswer) {
-        alert("Please select an option");
-        return;
-      }
-    }
-
-    if (currentStep < QUIZ_STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
     } else {
-      // Quiz terminé
-      setQuiz(answers);
-      router.push("/camera");
+      newAnswers[currentQuestion.id] = value;
+    }
+    
+    setAnswers(newAnswers);
+    
+    // Auto-advance for single choice questions
+    if (currentQuestion.type === "single") {
+      setTimeout(() => {
+        if (currentStep < questions.length - 1) {
+          setCurrentStep(currentStep + 1);
+        }
+      }, 500);
     }
   };
-
+  
+  const handleNext = () => {
+    if (currentStep < questions.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+  
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
-
-  const renderQuestion = () => {
-    const step = currentQuestion;
-
-    switch (step.id) {
-      case "sex":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.sex}</Label>
-              <p className="text-gray-600 mt-2">Select one option</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {["male", "female"].map((option) => (
-                <button
-                  type="button"
-                  key={option}
-                  onClick={() => {
-                    setAnswers({ ...answers, sex: option as "male" | "female" });
-                    setTimeout(() => {
-                      if (currentStep < QUIZ_STEPS.length - 1) {
-                        setCurrentStep(currentStep + 1);
-                      }
-                    }, 500);
-                  }}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all duration-300 hover:scale-105 ${
-                    answers.sex === option
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg ring-2 ring-blue-200"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">{option === "male" ? t.male : t.female}</p>
-                    {answers.sex === option && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "ageRange":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.ageRange}</Label>
-              <p className="text-gray-600 mt-2">Select your age range</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(t.ageRanges).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("ageRange", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all duration-300 hover:scale-105 ${
-                    answers.ageRange === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">{value}</p>
-                    {answers.ageRange === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "location":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.location}</Label>
-              <p className="text-gray-600 mt-2">Select one option</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(t.locationOptions).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("location", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                    answers.location === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">{value}</p>
-                    {answers.location === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "skinType":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.skinType}</Label>
-              <p className="text-gray-600 mt-2">Select your skin type</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(t.skinTypes).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("skinType", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                    answers.skinType === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">{value}</p>
-                    {answers.skinType === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "skinConcerns":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.skinConcerns}</Label>
-              <p className="text-gray-600 mt-2">
-                Select all that apply
-                {answers.skinConcerns && answers.skinConcerns.length > 0 && (
-                  <span className="ml-2 text-[#0065B7] font-semibold">
-                    ({answers.skinConcerns.length} selected)
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {t.skinConcernsList.map((item) => {
-                const isSelected = answers.skinConcerns?.includes(item);
-                return (
-                  <button
-                    type="button"
-                    key={item}
-                    onClick={() => {
-                      const current = answers.skinConcerns || [];
-                      setAnswers({
-                        ...answers,
-                        skinConcerns: isSelected
-                          ? current.filter((c) => c !== item)
-                          : [...current, item],
-                      });
-                    }}
-                    className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                      isSelected
-                        ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                        : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-semibold text-gray-900">{item}</p>
-                      {isSelected && (
-                        <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case "objectives":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.objectives}</Label>
-              <p className="text-gray-600 mt-2">
-                {t.objectivesMax}
-                {answers.objectives && answers.objectives.length > 0 && (
-                  <span className="ml-2 text-[#0065B7] font-semibold">
-                    ({answers.objectives.length}/3 selected)
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {t.objectivesList.map((item) => {
-                const isSelected = answers.objectives?.includes(item);
-                const canSelect = (answers.objectives?.length || 0) < 3;
-                return (
-                  <button
-                    type="button"
-                    key={item}
-                    onClick={() => {
-                      const current = answers.objectives || [];
-                      if (isSelected) {
-                        setAnswers({
-                          ...answers,
-                          objectives: current.filter((c) => c !== item),
-                        });
-                      } else if (canSelect) {
-                        setAnswers({
-                          ...answers,
-                          objectives: [...current, item],
-                        });
-                      }
-                    }}
-                    disabled={!isSelected && !canSelect}
-                    className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                      isSelected
-                        ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                        : !canSelect
-                        ? "border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed"
-                        : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-semibold text-gray-900">{item}</p>
-                      {isSelected && (
-                        <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case "dermaConditions":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.dermaConditions}</Label>
-              <p className="text-gray-600 mt-2">
-                Select if applicable
-                {answers.dermaConditions && answers.dermaConditions.length > 0 && (
-                  <span className="ml-2 text-[#0065B7] font-semibold">
-                    ({answers.dermaConditions.length} selected)
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {t.dermaConditionsList.map((item) => {
-                const isSelected = answers.dermaConditions?.includes(item);
-                return (
-                  <button
-                    type="button"
-                    key={item}
-                    onClick={() => {
-                      const current = answers.dermaConditions || [];
-                      setAnswers({
-                        ...answers,
-                        dermaConditions: isSelected
-                          ? current.filter((c) => c !== item)
-                          : [...current, item],
-                      });
-                    }}
-                    className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                      isSelected
-                        ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                        : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-semibold text-gray-900">{item}</p>
-                      {isSelected && (
-                        <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case "currentRoutineLevel":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.currentRoutineLevel}</Label>
-              <p className="text-gray-600 mt-2">Select one option</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(t.routineLevels).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("currentRoutineLevel", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                    answers.currentRoutineLevel === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-base font-semibold text-gray-900">{value}</p>
-                    {answers.currentRoutineLevel === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "productsUsed":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.productsUsed}</Label>
-              <p className="text-gray-600 mt-2">
-                Select all that you use
-                {answers.productsUsed && answers.productsUsed.length > 0 && (
-                  <span className="ml-2 text-[#0065B7] font-semibold">
-                    ({answers.productsUsed.length} selected)
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {t.productsList.map((item) => {
-                const isSelected = answers.productsUsed?.includes(item);
-                return (
-                  <button
-                    type="button"
-                    key={item}
-                    onClick={() => {
-                      const current = answers.productsUsed || [];
-                      setAnswers({
-                        ...answers,
-                        productsUsed: isSelected
-                          ? current.filter((c) => c !== item)
-                          : [...current, item],
-                      });
-                    }}
-                    className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                      isSelected
-                        ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                        : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-semibold text-gray-900">{item}</p>
-                      {isSelected && (
-                        <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case "sunExposure":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.sunExposure}</Label>
-              <p className="text-gray-600 mt-2">Select one option</p>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              {Object.entries(t.sunExposureLevels).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("sunExposure", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                    answers.sunExposure === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-base font-semibold text-gray-900">{value}</p>
-                    {answers.sunExposure === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "stressLevel":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.stressLevel}</Label>
-              <p className="text-gray-600 mt-2">Select one option</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(t.stressLevels).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("stressLevel", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                    answers.stressLevel === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-base font-semibold text-gray-900">{value}</p>
-                    {answers.stressLevel === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "preferences":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.preferences}</Label>
-              <p className="text-gray-600 mt-2">
-                Select your preferences
-                {answers.preferences && answers.preferences.length > 0 && (
-                  <span className="ml-2 text-[#0065B7] font-semibold">
-                    ({answers.preferences.length} selected)
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {t.preferencesList.map((item) => {
-                const isSelected = answers.preferences?.includes(item);
-                return (
-                  <button
-                    type="button"
-                    key={item}
-                    onClick={() => {
-                      const current = answers.preferences || [];
-                      setAnswers({
-                        ...answers,
-                        preferences: isSelected
-                          ? current.filter((c) => c !== item)
-                          : [...current, item],
-                      });
-                    }}
-                    className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                      isSelected
-                        ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                        : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-base font-semibold text-gray-900">{item}</p>
-                      {isSelected && (
-                        <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case "budget":
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-8">
-              <Label className="text-3xl md:text-4xl font-bold text-gray-900">{t.budget}</Label>
-              <p className="text-gray-600 mt-2">Select one option</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(t.budgetRanges).map(([key, value]) => (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => handleSingleChoiceWithAutoAdvance("budget", key)}
-                  className={`relative p-8 border-2 rounded-xl text-left transition-all transform hover:scale-105 ${
-                    answers.budget === key
-                      ? "border-[#0065B7] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                      : "border-gray-200 hover:border-[#0065B7] hover:shadow-md bg-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-base font-semibold text-gray-900">{value}</p>
-                    {answers.budget === key && (
-                      <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center animate-scale-in">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  
+  const handleSubmit = () => {
+    const finalAnswers = {
+      ...answers,
+      photoConsent: true, // Auto-consent for photo
+    };
+    
+    setQuiz(finalAnswers);
+    router.push("/camera");
   };
+  
+  const progress = ((currentStep + 1) / questions.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Enhanced Progress Bar */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-[#0065B7] flex items-center justify-center">
-                <span className="text-white font-bold text-sm">{currentStep + 1}</span>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  STEP {currentStep + 1} OF {QUIZ_STEPS.length}
-                </p>
-                <p className="text-sm font-medium text-gray-900">
-                  {Math.round(progress)}% complete
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500">Time remaining</p>
-              <p className="text-sm font-semibold text-gray-900">≈ {Math.ceil((QUIZ_STEPS.length - currentStep) * 0.3)} min</p>
-            </div>
-          </div>
-          <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className="absolute h-full bg-gradient-to-r from-[#0065B7] to-[#0088cc] transition-all duration-500 ease-out shadow-lg"
-              style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Progress Bar */}
+      <div className="w-full bg-slate-200 rounded-full h-2">
+        <div 
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      
+      <div className="text-center text-sm text-slate-600">
+        Question {currentStep + 1} of {questions.length}
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {/* Question Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 mb-8">
-          {renderQuestion()}
-        </div>
+      {/* Question Card */}
+      <Card className="border-2 border-blue-100 shadow-lg">
+        <CardContent className="p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">
+              {t.quiz.questions[currentQuestion.id as keyof typeof t.quiz.questions] || currentQuestion.id}
+            </h2>
+            {currentQuestion.type === "multiple" && (
+              <div className="text-slate-600">
+                {currentQuestion.maxSelections ? (
+                  <p>
+                    Select up to {currentQuestion.maxSelections} options
+                    {answers[currentQuestion.id] && (
+                      <span className="ml-2 font-medium text-blue-600">
+                        ({answers[currentQuestion.id]?.length || 0} selected)
+                      </span>
+                    )}
+                  </p>
+                ) : (
+                  <p>
+                    Select all that apply
+                    {answers[currentQuestion.id] && (
+                      <span className="ml-2 font-medium text-blue-600">
+                        ({answers[currentQuestion.id]?.length || 0} selected)
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
-          <Button
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
-            variant="outline"
-            className="border-2 border-gray-300 hover:border-[#0065B7] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg px-6 py-6 transition-all"
-            size="lg"
-          >
-            <ChevronLeft className="mr-2 h-5 w-5" />
-            <span className="font-medium">Previous</span>
-          </Button>
+          {/* Options Grid */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {currentQuestion.options.map((option) => {
+              const isSelected = currentQuestion.type === "single" 
+                ? answers[currentQuestion.id] === option.value
+                : (answers[currentQuestion.id] as string[] || []).includes(option.value);
+              
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleAnswer(option.value)}
+                  className={`p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:scale-105 ${
+                    isSelected
+                      ? "border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200"
+                      : "border-slate-200 bg-white hover:border-blue-300 hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-1">
+                      <div className="font-semibold text-slate-800 text-lg mb-2">
+                        {option.label}
+                      </div>
+                      {(option as any).description && (
+                        <div className="text-sm text-slate-600 leading-relaxed">
+                          {(option as any).description}
+                        </div>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <div className="flex-shrink-0">
+                        <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
 
-          <Button
-            onClick={handleNext}
-            className="bg-gradient-to-r from-[#0065B7] to-[#0088cc] hover:from-[#004a8a] hover:to-[#006699] text-white rounded-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all group"
-            size="lg"
-          >
-            <span className="font-medium">
-              {currentStep === QUIZ_STEPS.length - 1 ? "Finish" : "Next"}
-            </span>
-            <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
-      </div>
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            {currentStep > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrevious}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                {t.quiz.previous}
+              </Button>
+            )}
+            
+            {currentStep === 0 && <div></div>}
+
+            {currentQuestion.type === "multiple" && (
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={currentStep === questions.length - 1 || !answers[currentQuestion.id] || answers[currentQuestion.id]?.length === 0}
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t.quiz.next}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
+
+            {isLastStep && (
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              >
+                {t.quiz.submit}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

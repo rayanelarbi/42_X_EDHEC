@@ -49,7 +49,7 @@ export default function Home() {
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
               Your personalized<br /><span className="text-[#0065B7]">skincare routine</span>
-            </h1>
+          </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
               Discover a routine tailored to your skin type through our scientific analysis and personalized recommendations.
