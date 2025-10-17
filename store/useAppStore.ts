@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { SkinAnalysisResult } from "@/lib/skinAnalysis";
 
 export type QuizData = {
   sex: "male" | "female";
@@ -77,12 +78,14 @@ type AppStore = {
   quiz: Partial<QuizData>;
   photoBase64: string | null;
   photos: PhotoEntry[]; // Historique des photos
+  skinAnalysis: SkinAnalysisResult | null; // Résultat de l'analyse de peau
   result: Result | null;
   cart: CartItem[];
   setLanguage: (language: "en" | "fr") => void;
   setQuiz: (data: Partial<QuizData>) => void;
   setPhoto: (photo: string | null) => void;
   addPhotoToHistory: (photo: string, note?: string) => void;
+  setSkinAnalysis: (analysis: SkinAnalysisResult | null) => void;
   setResult: (result: Result | null) => void;
   addToCart: (item: Omit<CartItem, "quantity">) => void;
   removeFromCart: (id: string) => void;
@@ -98,6 +101,7 @@ export const useAppStore = create<AppStore>()(
       quiz: {},
       photoBase64: null,
       photos: [],
+      skinAnalysis: null,
       result: null,
       cart: [],
 
@@ -115,6 +119,7 @@ export const useAppStore = create<AppStore>()(
             },
           ],
         })),
+      setSkinAnalysis: (analysis) => set({ skinAnalysis: analysis }),
       setResult: (result) => {
         // Quand on set un nouveau result, ajouter les dates si pas présentes
         if (result && !result.startDate) {
@@ -156,7 +161,7 @@ export const useAppStore = create<AppStore>()(
 
       clearCart: () => set({ cart: [] }),
 
-      clearAll: () => set({ quiz: {}, photoBase64: null, result: null, cart: [] }),
+      clearAll: () => set({ quiz: {}, photoBase64: null, skinAnalysis: null, result: null, cart: [] }),
     }),
     {
       name: "paulaschoice-storage",

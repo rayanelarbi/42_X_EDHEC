@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'MonPOC',
   webDir: 'out',
   server: {
-    url: 'https://carrying-content-goals-alien.trycloudflare.com', // ex: 172.20.10.2 si hotspot iPhone
+    url: 'https://carrying-content-goals-alicoen.trycloudflare.com', // ex: 172.20.10.2 si hotspot iPhone
     cleartext: true,
   },
 };

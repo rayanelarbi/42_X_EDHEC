@@ -12,26 +12,46 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import BeforeAfter from "@/components/BeforeAfter";
-import { RefreshCw, Calendar, User, ChevronDown, Camera, FileText, Sparkles } from "lucide-react";
+import { RefreshCw, Calendar, User, ChevronDown, Camera, FileText, Sparkles, Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import Cart from "@/components/Cart";
 import { translations } from "@/lib/translations";
 import { getProducts } from "@/lib/productDataTranslations";
+import { analyzeSkin } from "@/lib/skinAnalysis";
 
 export default function ResultPage() {
   const router = useRouter();
   const quiz = useAppStore((state) => state.quiz);
   const photoBase64 = useAppStore((state) => state.photoBase64);
   const result = useAppStore((state) => state.result);
+  const skinAnalysis = useAppStore((state) => state.skinAnalysis);
   const setResult = useAppStore((state) => state.setResult);
+  const setSkinAnalysis = useAppStore((state) => state.setSkinAnalysis);
   const t = translations["en"];
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Toujours calculer ces valeurs pour éviter les problèmes de hooks
   const products = getProducts("en");
+
+  // Lancer l'analyse de peau si on a une photo et pas encore d'analyse
+  useEffect(() => {
+    if (photoBase64 && !skinAnalysis && !isAnalyzing) {
+      setIsAnalyzing(true);
+      analyzeSkin(photoBase64)
+        .then(analysis => {
+          setSkinAnalysis(analysis);
+          setIsAnalyzing(false);
+        })
+        .catch(error => {
+          console.error("Erreur lors de l'analyse de peau:", error);
+          setIsAnalyzing(false);
+        });
+    }
+  }, [photoBase64, skinAnalysis, isAnalyzing, setSkinAnalysis]);
 
   useEffect(() => {
     if (!result && quiz?.sex && quiz?.skinType) {
@@ -205,6 +225,28 @@ export default function ResultPage() {
           </h1>
         </div>
 
+        {/* AI Analysis Loading */}
+        {isAnalyzing && (
+          <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl">
+            <div className="flex items-center justify-center gap-3">
+              <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+              <span className="text-lg font-semibold text-gray-900">
+                AI Skin Analysis in progress...
+              </span>
+            </div>
+            <p className="text-center text-sm text-gray-600 mt-2">
+              Detecting skin concerns and problem areas
+            </p>
+          </div>
+        )}
+
+        {/* Before/After Photo if available */}
+        {photoBase64 && (
+          <div className="mb-8">
+            <BeforeAfter photoBase64={photoBase64} productKey={result.productKey} />
+          </div>
+        )}
+
         {/* PRODUCTS FIRST - Main Focus */}
         <div className="mb-8">
           <div className="grid md:grid-cols-2 gap-6">
@@ -217,13 +259,6 @@ export default function ResultPage() {
             ))}
           </div>
         </div>
-
-        {/* Before/After Photo if available */}
-        {photoBase64 && (
-          <div className="mb-8">
-            <BeforeAfter photoBase64={photoBase64} productKey={result.productKey} />
-          </div>
-        )}
 
         {/* Routine Section - Redirect to dedicated page */}
         <div className="mb-6">
