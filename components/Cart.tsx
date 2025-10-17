@@ -42,7 +42,7 @@ export default function Cart() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
           <Card className="w-full max-w-md max-h-[80vh] flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Mon panier ({totalItems})</CardTitle>
+              <CardTitle>My Cart ({totalItems})</CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
@@ -52,7 +52,7 @@ export default function Cart() {
               {cart.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <ShoppingCart className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>Votre panier est vide</p>
+                  <p>Your cart is empty</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -114,14 +114,14 @@ export default function Cart() {
                   <span>{totalPrice.toFixed(2)}€</span>
                 </div>
                 <Button className="w-full" size="lg">
-                  Commander (Démo)
+                  Order (Demo)
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={clearCart}
                 >
-                  Vider le panier
+                  Clear Cart
                 </Button>
               </CardFooter>
             )}

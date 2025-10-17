@@ -1,12 +1,12 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.yourorg.paulaschoiceproto',
-  appName: 'PaulasChoiceProto',
-  webDir: 'out', // sans importance en mode server.url, mais laisse-le
+  appId: 'com.exemple.monpoc',
+  appName: 'MonPOC',
+  webDir: 'out',
   server: {
-    url: 'http://localhost:3000', // tu lanceras `npm run dev`
-    cleartext: true,               // autoriser http en dev
+    url: 'https://carrying-content-goals-alien.trycloudflare.com', // ex: 172.20.10.2 si hotspot iPhone
+    cleartext: true,
   },
 };
 

@@ -42,6 +42,12 @@ export type IngredientCard = {
   alternatives?: string;
 };
 
+export type PhotoEntry = {
+  date: string; // ISO string
+  photoBase64: string;
+  note?: string;
+};
+
 export type Result = {
   persona: Persona;
   productKey: ProductKey;
@@ -53,6 +59,8 @@ export type Result = {
     mainConcerns: string[];
     objectives: string[];
   };
+  startDate?: string; // ISO string - date de début de la routine
+  endDate?: string; // ISO string - date de fin estimée (12 semaines par défaut)
 };
 
 // NOUVEAU : Types pour le panier
@@ -67,17 +75,17 @@ export type CartItem = {
 type AppStore = {
   quiz: Partial<QuizData>;
   photoBase64: string | null;
+  photos: PhotoEntry[]; // Historique des photos
   result: Result | null;
   cart: CartItem[];
-  language: "fr" | "en";
   setQuiz: (data: Partial<QuizData>) => void;
   setPhoto: (photo: string | null) => void;
+  addPhotoToHistory: (photo: string, note?: string) => void;
   setResult: (result: Result | null) => void;
   addToCart: (item: Omit<CartItem, "quantity">) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
-  setLanguage: (lang: "fr" | "en") => void;
   clearAll: () => void;
 };
 
@@ -86,13 +94,34 @@ export const useAppStore = create<AppStore>()(
     (set) => ({
       quiz: {},
       photoBase64: null,
+      photos: [],
       result: null,
       cart: [],
-      language: "fr",
 
       setQuiz: (data) => set((state) => ({ quiz: { ...state.quiz, ...data } })),
       setPhoto: (photo) => set({ photoBase64: photo }),
-      setResult: (result) => set({ result }),
+      addPhotoToHistory: (photo, note) =>
+        set((state) => ({
+          photos: [
+            ...state.photos,
+            {
+              date: new Date().toISOString(),
+              photoBase64: photo,
+              note,
+            },
+          ],
+        })),
+      setResult: (result) => {
+        // Quand on set un nouveau result, ajouter les dates si pas présentes
+        if (result && !result.startDate) {
+          const startDate = new Date().toISOString();
+          const endDate = new Date();
+          endDate.setDate(endDate.getDate() + 84); // 12 semaines = 84 jours
+          result.startDate = startDate;
+          result.endDate = endDate.toISOString();
+        }
+        set({ result });
+      },
 
       addToCart: (item) =>
         set((state) => {
@@ -122,8 +151,6 @@ export const useAppStore = create<AppStore>()(
         })),
 
       clearCart: () => set({ cart: [] }),
-
-      setLanguage: (lang) => set({ language: lang }),
 
       clearAll: () => set({ quiz: {}, photoBase64: null, result: null, cart: [] }),
     }),

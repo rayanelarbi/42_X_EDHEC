@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>PaulasChoiceProto</string>
+        <string>MonPOC</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -45,27 +45,26 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+		<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>172.20.10.2</key>
+			<dict>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<!-- Caméra -->
+	<key>NSCameraUsageDescription</key>
+	<string>Nécessaire pour la prévisualisation via la caméra.</string>
+	<!-- Micro si tu captes aussi l'audio (facultatif) -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Nécessaire pour l'audio si requis.</string>
 </dict>
 </plist>
-
-<key>NSCameraUsageDescription</key>
-<string>Besoin d’accéder à la caméra pour la photo du visage.</string>
-<key>NSMicrophoneUsageDescription</key>
-<string>Besoin du micro si enregistrement vidéo.</string>
-
-
-<!--Ajout-->
-<key>NSAppTransportSecurity</key>
-<dict>
-  <key>NSAllowsArbitraryLoads</key><true/>
-  <key>NSExceptionDomains</key>
-  <dict>
-    <key>localhost</key>
-    <dict>
-      <key>NSIncludesSubdomains</key><true/>
-      <key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
-      <key>NSExceptionRequiresForwardSecrecy</key><false/>
-      <key>NSAllowsArbitraryLoads</key><true/>
-    </dict>
-  </dict>
-</dict>

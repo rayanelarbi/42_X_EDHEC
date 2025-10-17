@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { simulateAfter } from "@/lib/imageFilters";
 import { ProductKey } from "@/store/useAppStore";
+import { useAppStore } from "@/store/useAppStore";
+import { translations } from "@/lib/translations";
 
 type BeforeAfterProps = {
   photoBase64: string;
@@ -13,7 +15,7 @@ type BeforeAfterProps = {
 export default function BeforeAfter({ photoBase64, productKey }: BeforeAfterProps) {
   const beforeCanvasRef = useRef<HTMLCanvasElement>(null);
   const afterCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [processed, setProcessed] = useState(false);
+  const t = translations["en"].result;
 
   useEffect(() => {
     const img = new Image();
@@ -36,31 +38,28 @@ export default function BeforeAfter({ photoBase64, productKey }: BeforeAfterProp
           afterCtx.drawImage(afterCanvas, 0, 0);
         }
       }
-
-      setProcessed(true);
     };
     img.src = photoBase64;
   }, [photoBase64, productKey]);
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>Simulation Avant / Après</CardTitle>
+    <Card className="mb-6 border border-gray-200 bg-white shadow-sm">
+      <CardHeader className="bg-white border-b border-gray-200">
+        <CardTitle className="text-2xl font-bold text-gray-900">{t.beforeAfter}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <h4 className="font-medium text-center">Avant</h4>
-            <canvas ref={beforeCanvasRef} className="w-full rounded-lg border" />
+      <CardContent className="pt-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <h4 className="font-bold text-center text-base text-gray-700 uppercase tracking-wide">{t.before}</h4>
+            <canvas ref={beforeCanvasRef} className="w-full rounded border border-gray-300" />
           </div>
-          <div className="space-y-2">
-            <h4 className="font-medium text-center">Après (simulation)</h4>
-            <canvas ref={afterCanvasRef} className="w-full rounded-lg border" />
+          <div className="space-y-3">
+            <h4 className="font-bold text-center text-base text-gray-700 uppercase tracking-wide">{t.after}</h4>
+            <canvas ref={afterCanvasRef} className="w-full rounded border border-gray-300" />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground text-center mt-4">
-          ⚠️ Simulation illustrative. Ceci n'est pas un avis médical. Les résultats
-          peuvent varier selon les individus.
+        <p className="text-sm text-gray-600 text-center mt-6 p-4 bg-amber-50 rounded border border-amber-200">
+          {t.simulationWarning}
         </p>
       </CardContent>
     </Card>
