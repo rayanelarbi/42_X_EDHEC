@@ -113,7 +113,7 @@ export default function ResultPage() {
 
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-72 bg-white border-2 border-gray-200 rounded-xl shadow-xl overflow-hidden">
-                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
                     <p className="text-sm font-bold text-gray-900">
                       My Profile
                     </p>
@@ -229,7 +229,7 @@ export default function ResultPage() {
         <div className="mb-6">
           <button
             onClick={() => router.push("/routine")}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-xl border-2 border-purple-400 transition-all p-8 shadow-lg hover:shadow-xl group"
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl border-2 border-blue-400 transition-all p-8 shadow-lg hover:shadow-xl group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">

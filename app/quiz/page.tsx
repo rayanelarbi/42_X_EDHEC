@@ -5,10 +5,16 @@ import { ArrowLeft } from "lucide-react";
 import QuizForm from "@/components/QuizForm";
 import { useAppStore } from "@/store/useAppStore";
 import { translations } from "@/lib/translations";
+import { useEffect } from "react";
 
 export default function QuizPage() {
   const { language } = useAppStore();
   const t = translations[language];
+
+  // Update page title
+  useEffect(() => {
+    document.title = "Paula's Choice - Skin Analysis Form";
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -30,7 +36,7 @@ export default function QuizPage() {
               </span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-4">
               {t.quiz.title}
             </h1>
             

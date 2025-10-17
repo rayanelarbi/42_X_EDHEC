@@ -151,7 +151,7 @@ export default function CameraCapture() {
 
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Enhanced Consent Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 shadow-md">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl p-6 shadow-md">
           <label className="flex items-start space-x-4 cursor-pointer group">
             <div className="relative mt-1 flex-shrink-0">
               <input
@@ -190,7 +190,7 @@ export default function CameraCapture() {
         {!captured && !showVideo && (
           <div className="grid md:grid-cols-2 gap-6">
             {/* Camera Option - Professional */}
-            <div className="bg-gradient-to-br from-blue-50 via-blue-50 to-indigo-100 rounded-2xl p-8 border-2 border-blue-200 hover:border-[#0065B7] hover:shadow-lg transition-all duration-300">
+            <div className="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-200 hover:border-[#0065B7] hover:shadow-lg transition-all duration-300">
               <div className="flex flex-col items-center text-center space-y-5">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
                   <Camera className="w-12 h-12 text-[#0065B7]" />
@@ -216,7 +216,7 @@ export default function CameraCapture() {
             </div>
 
             {/* Upload Option - Professional */}
-            <div className="bg-gradient-to-br from-purple-50 via-purple-50 to-pink-100 rounded-2xl p-8 border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300">
+            <div className="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300">
               <div className="flex flex-col items-center text-center space-y-5">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
                   <Upload className="w-12 h-12 text-purple-600" />

@@ -216,7 +216,7 @@ export default function QuizForm() {
       {/* Progress Bar */}
       <div className="w-full bg-slate-200 rounded-full h-2">
         <div 
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-500 ease-out"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 h-2 rounded-full transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -322,7 +322,7 @@ export default function QuizForm() {
                 type="button"
                 onClick={handleNext}
                 disabled={!answers[currentQuestion.id] || answers[currentQuestion.id]?.length === 0}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t.quiz.next}
                 <ChevronRight className="w-4 h-4" />

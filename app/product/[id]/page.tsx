@@ -73,7 +73,7 @@ export default function ProductDetailPage() {
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
         {/* Badge recommandé */}
         {isRecommended && (
-          <div className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
+          <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
             <Sparkles className="w-6 h-6" />
             <span className="font-bold text-lg">
               ✨ Recommended for you

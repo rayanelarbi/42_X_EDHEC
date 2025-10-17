@@ -128,7 +128,7 @@ export default function RoutinePage() {
           </div>
 
           {/* Progression Card */}
-          <Card className="p-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
+          <Card className="p-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 shadow-lg">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 w-full">
                 <div className="flex items-center justify-between mb-2">
@@ -261,7 +261,7 @@ export default function RoutinePage() {
                         onClick={() => toggleDayCompletion(day, 'evening')}
                         className={`flex-1 rounded flex items-center justify-center transition-all ${
                           eveningDone
-                            ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
                             : "bg-gray-100 hover:bg-gray-200"
                         }`}
                         title="Evening"
@@ -286,7 +286,7 @@ export default function RoutinePage() {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded flex items-center justify-center">
                 <Moon className="w-4 h-4 text-white" />
               </div>
               <span className="text-gray-700 font-medium">
@@ -347,7 +347,7 @@ export default function RoutinePage() {
           {/* Routine du soir */}
           <Card className="p-6 border-2 border-gray-200 shadow-lg">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
                 <Moon className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -362,9 +362,9 @@ export default function RoutinePage() {
             </div>
             <div className="space-y-4">
               {eveningSteps.map((step, idx) => (
-                <div key={idx} className="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl p-4">
+                <div key={idx} className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
                       <span className="text-white font-bold text-sm">{step.order}</span>
                     </div>
                     <div className="flex-1">
@@ -384,7 +384,7 @@ export default function RoutinePage() {
         </div>
 
         {/* Statistiques */}
-        <Card className="mt-8 p-6 border-2 border-gray-200 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Card className="mt-8 p-6 border-2 border-gray-200 shadow-lg bg-gradient-to-r from-blue-50 to-blue-100">
           <div className="flex items-center gap-3 mb-4">
             <Sparkles className="w-6 h-6 text-[#0065B7]" />
             <h2 className="text-2xl font-bold text-gray-900">

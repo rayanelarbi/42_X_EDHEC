@@ -45,7 +45,7 @@ export default function ProductCard({ product, showDetails = false }: ProductCar
     >
       {/* Badge "Recommended for you" */}
       {showDetails && (
-        <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-bold flex items-center gap-2">
+        <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-bold flex items-center gap-2">
           <Sparkles className="w-4 h-4" />
           Recommended for you
         </div>

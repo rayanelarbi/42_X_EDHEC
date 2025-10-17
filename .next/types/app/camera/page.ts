@@ -1,4 +1,4 @@
-// File: /Users/nicolasbrecqueville/Documents/Informatique/Ecole/Ecole42/Cursus/edhec_project/42_X_EDHEC/app/camera/page.tsx
+// File: /Users/romandeulio/edhec/42_X_EDHEC/app/camera/page.tsx
 import * as entry from '../../../../app/camera/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

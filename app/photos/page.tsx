@@ -187,7 +187,7 @@ export default function PhotosPage() {
 
         {/* Comparaison avant/après */}
         {allPhotos.length >= 2 && (
-          <Card className="mt-8 p-6 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+          <Card className="mt-8 p-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Before/after comparison
             </h2>
