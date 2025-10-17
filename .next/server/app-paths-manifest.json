@@ -1,7 +1,7 @@
 {
+  "/routine/page": "app/routine/page.js",
   "/quiz/page": "app/quiz/page.js",
-  "/photos/page": "app/photos/page.js",
-  "/camera/page": "app/camera/page.js",
+  "/result/page": "app/result/page.js",
   "/page": "app/page.js",
-  "/result/page": "app/result/page.js"
+  "/camera/page": "app/camera/page.js"
 }

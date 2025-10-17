@@ -31,27 +31,34 @@ export default function ResultPage() {
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [lastAnalyzedPhoto, setLastAnalyzedPhoto] = useState<string | null>(null);
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Toujours calculer ces valeurs pour éviter les problèmes de hooks
   const products = getProducts("en");
 
-  // Lancer l'analyse de peau si on a une photo et pas encore d'analyse
+  // Lancer l'analyse de peau si on a une photo et (pas encore d'analyse OU photo différente)
   useEffect(() => {
-    if (photoBase64 && !skinAnalysis && !isAnalyzing) {
+    if (photoBase64 && photoBase64 !== lastAnalyzedPhoto && !isAnalyzing) {
+      console.log("🔍 Nouvelle analyse de peau démarrée...");
       setIsAnalyzing(true);
+      // Réinitialiser l'ancienne analyse
+      setSkinAnalysis(null);
+
       analyzeSkin(photoBase64)
         .then(analysis => {
+          console.log("✅ Analyse terminée:", analysis);
           setSkinAnalysis(analysis);
+          setLastAnalyzedPhoto(photoBase64);
           setIsAnalyzing(false);
         })
         .catch(error => {
-          console.error("Erreur lors de l'analyse de peau:", error);
+          console.error("❌ Erreur lors de l'analyse de peau:", error);
           setIsAnalyzing(false);
         });
     }
-  }, [photoBase64, skinAnalysis, isAnalyzing, setSkinAnalysis]);
+  }, [photoBase64, lastAnalyzedPhoto, isAnalyzing, setSkinAnalysis]);
 
   useEffect(() => {
     if (!result && quiz?.sex && quiz?.skinType) {

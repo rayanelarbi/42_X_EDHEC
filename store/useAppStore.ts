@@ -107,7 +107,7 @@ export const useAppStore = create<AppStore>()(
 
       setLanguage: (language) => set({ language }),
       setQuiz: (data) => set((state) => ({ quiz: { ...state.quiz, ...data } })),
-      setPhoto: (photo) => set({ photoBase64: photo }),
+      setPhoto: (photo) => set({ photoBase64: photo, skinAnalysis: null }), // Réinitialiser l'analyse quand on change de photo
       addPhotoToHistory: (photo, note) =>
         set((state) => ({
           photos: [

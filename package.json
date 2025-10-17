@@ -12,6 +12,8 @@
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
     "@hookform/resolvers": "^3.3.4",
+    "@mediapipe/camera_utils": "^0.3.1675466862",
+    "@mediapipe/face_mesh": "^0.4.1633559619",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.379.0",
