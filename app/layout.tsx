@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Paula's Choice",
-  description: "Discover your personalized skincare routine",
+  title: "Paula's Choice - Personalized Skincare Analysis",
+  description: "Discover your personalized skincare routine with our scientific analysis and expert recommendations",
 };
 
 export default function RootLayout({

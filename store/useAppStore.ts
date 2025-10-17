@@ -73,11 +73,13 @@ export type CartItem = {
 };
 
 type AppStore = {
+  language: "en" | "fr";
   quiz: Partial<QuizData>;
   photoBase64: string | null;
   photos: PhotoEntry[]; // Historique des photos
   result: Result | null;
   cart: CartItem[];
+  setLanguage: (language: "en" | "fr") => void;
   setQuiz: (data: Partial<QuizData>) => void;
   setPhoto: (photo: string | null) => void;
   addPhotoToHistory: (photo: string, note?: string) => void;
@@ -92,12 +94,14 @@ type AppStore = {
 export const useAppStore = create<AppStore>()(
   persist(
     (set) => ({
+      language: "en",
       quiz: {},
       photoBase64: null,
       photos: [],
       result: null,
       cart: [],
 
+      setLanguage: (language) => set({ language }),
       setQuiz: (data) => set((state) => ({ quiz: { ...state.quiz, ...data } })),
       setPhoto: (photo) => set({ photoBase64: photo }),
       addPhotoToHistory: (photo, note) =>
