@@ -20,7 +20,7 @@ export type QuizData = {
 };
 
 export type Persona = "elise" | "marc";
-export type ProductKey = "duo-eclat" | "repairing-serum";
+export type ProductKey = "vitamin-c-moisturizer" | "bha-exfoliant" | "rescue-repair-moisturizer" | "repairing-serum";
 
 export type RoutineStep = {
   time: "morning" | "evening";
@@ -45,13 +45,16 @@ export type IngredientCard = {
 
 export type PhotoEntry = {
   date: string; // ISO string
-  photoBase64: string;
+  photoBase64: string; // Photo originale (compressée)
+  enhancedBase64?: string; // Photo retouchée "after" (compressée)
   note?: string;
+  analysis?: any; // SkinAnalysisResult from lib/skinAnalysis
 };
 
 export type Result = {
   persona: Persona;
   productKey: ProductKey;
+  recommendedProducts?: ProductKey[]; // Liste de tous les produits recommandés
   routine: Routine;
   ingredients: IngredientCard[];
   irritationGuard: string[];
@@ -81,17 +84,22 @@ type AppStore = {
   skinAnalysis: SkinAnalysisResult | null; // Résultat de l'analyse de peau
   result: Result | null;
   cart: CartItem[];
+  photoConsent: boolean; // Consent pour la caméra
   setLanguage: (language: "en" | "fr") => void;
   setQuiz: (data: Partial<QuizData>) => void;
   setPhoto: (photo: string | null) => void;
-  addPhotoToHistory: (photo: string, note?: string) => void;
+  addPhotoToHistory: (photo: string, note?: string, analysis?: any, enhancedBase64?: string) => void;
+  removePhotoFromHistory: (index: number) => void;
   setSkinAnalysis: (analysis: SkinAnalysisResult | null) => void;
+  updatePhotoAnalysis: (index: number, analysis: any) => void;
   setResult: (result: Result | null) => void;
   addToCart: (item: Omit<CartItem, "quantity">) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   clearAll: () => void;
+  reset: () => void;
+  setPhotoConsent: (consent: boolean) => void;
 };
 
 export const useAppStore = create<AppStore>()(
@@ -104,22 +112,51 @@ export const useAppStore = create<AppStore>()(
       skinAnalysis: null,
       result: null,
       cart: [],
+      photoConsent: false,
 
       setLanguage: (language) => set({ language }),
       setQuiz: (data) => set((state) => ({ quiz: { ...state.quiz, ...data } })),
       setPhoto: (photo) => set({ photoBase64: photo, skinAnalysis: null }), // Réinitialiser l'analyse quand on change de photo
-      addPhotoToHistory: (photo, note) =>
+      addPhotoToHistory: (photo, note, analysis, enhancedBase64) =>
+        set((state) => {
+          // Vérifier si la photo existe déjà
+          const existingIndex = state.photos.findIndex(p => p.photoBase64 === photo);
+
+          if (existingIndex !== -1) {
+            // Mettre à jour la photo existante avec l'analyse et l'enhanced
+            const updatedPhotos = [...state.photos];
+            updatedPhotos[existingIndex] = {
+              ...updatedPhotos[existingIndex],
+              analysis: analysis || updatedPhotos[existingIndex].analysis,
+              enhancedBase64: enhancedBase64 || updatedPhotos[existingIndex].enhancedBase64,
+              note: note !== undefined ? note : updatedPhotos[existingIndex].note,
+            };
+            return { photos: updatedPhotos };
+          }
+
+          // Ajouter une nouvelle photo
+          return {
+            photos: [
+              ...state.photos,
+              {
+                date: new Date().toISOString(),
+                photoBase64: photo,
+                enhancedBase64,
+                note,
+                analysis,
+              },
+            ],
+          };
+        }),
+      removePhotoFromHistory: (index) =>
         set((state) => ({
-          photos: [
-            ...state.photos,
-            {
-              date: new Date().toISOString(),
-              photoBase64: photo,
-              note,
-            },
-          ],
+          photos: state.photos.filter((_, i) => i !== index),
         })),
       setSkinAnalysis: (analysis) => set({ skinAnalysis: analysis }),
+      updatePhotoAnalysis: (index, analysis) =>
+        set((state) => ({
+          photos: state.photos.map((p, i) => i === index ? { ...p, analysis } : p),
+        })),
       setResult: (result) => {
         // Quand on set un nouveau result, ajouter les dates si pas présentes
         if (result && !result.startDate) {
@@ -162,6 +199,10 @@ export const useAppStore = create<AppStore>()(
       clearCart: () => set({ cart: [] }),
 
       clearAll: () => set({ quiz: {}, photoBase64: null, skinAnalysis: null, result: null, cart: [] }),
+
+      reset: () => set({ language: "en", quiz: {}, photoBase64: null, photos: [], skinAnalysis: null, result: null, cart: [], photoConsent: false }),
+
+      setPhotoConsent: (consent) => set({ photoConsent: consent }),
     }),
     {
       name: "paulaschoice-storage",

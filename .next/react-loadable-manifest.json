@@ -1,8 +1,8 @@
 {
-  "lib/skinAnalysis.ts -> @mediapipe/face_mesh": {
-    "id": "lib/skinAnalysis.ts -> @mediapipe/face_mesh",
+  "components/CameraCapture.tsx -> @capacitor/camera": {
+    "id": "components/CameraCapture.tsx -> @capacitor/camera",
     "files": [
-      "static/chunks/_app-pages-browser_node_modules_mediapipe_face_mesh_face_mesh_js.js"
+      "static/chunks/_app-pages-browser_node_modules_capacitor_camera_dist_esm_index_js.js"
     ]
   }
 }

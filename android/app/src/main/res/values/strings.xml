@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Paula\'s Choice</string>
+    <string name="title_activity_main">Paula\'s Choice</string>
+    <string name="package_name">com.paulaschoice.skincare</string>
+    <string name="custom_url_scheme">com.paulaschoice.skincare</string>
+</resources>

@@ -6,29 +6,95 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppStore } from "@/store/useAppStore";
 import { useRouter } from "next/navigation";
-import { Camera, Upload, CheckCircle2, X, Sparkles, Shield } from "lucide-react";
+import { Camera, Upload, CheckCircle2, X, Sparkles, Shield, Smartphone } from "lucide-react";
 import { translations } from "@/lib/translations";
+
+// Import Capacitor Camera (native mobile)
+let CapacitorCamera: any = null;
+if (typeof window !== "undefined") {
+  import("@capacitor/camera").then((module) => {
+    CapacitorCamera = module.Camera;
+  });
+}
 
 export default function CameraCapture() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [captured, setCaptured] = useState(false);
-  const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [showVideo, setShowVideo] = useState(false);
+  const [showConsentModal, setShowConsentModal] = useState(false);
   const setPhoto = useAppStore((state) => state.setPhoto);
   const photoBase64 = useAppStore((state) => state.photoBase64);
+  const photoConsent = useAppStore((state) => state.photoConsent);
+  const setPhotoConsent = useAppStore((state) => state.setPhotoConsent);
+  const addPhotoToHistory = useAppStore((state) => state.addPhotoToHistory);
   const router = useRouter();
 
   const t = translations["en"].camera;
 
-  const startCamera = async () => {
-    if (!consent) {
-      setError(t.consentError);
+  // Détecte si on est sur mobile
+  const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  };
+
+  // Check consent before taking photo
+  const handleTakePhoto = () => {
+    if (!photoConsent) {
+      setShowConsentModal(true);
+    } else {
+      if (isMobile()) {
+        takePictureNative();
+      } else {
+        startCamera();
+      }
+    }
+  };
+
+  const handleConsentAccept = () => {
+    setPhotoConsent(true);
+    setShowConsentModal(false);
+    if (isMobile()) {
+      takePictureNative();
+    } else {
+      startCamera();
+    }
+  };
+
+  // Utilise la caméra native mobile (Capacitor)
+  const takePictureNative = async () => {
+    setError("");
+
+    if (!CapacitorCamera) {
+      setError("Camera plugin not loaded yet, please try again");
       return;
     }
 
+    try {
+      const image = await CapacitorCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: "base64",
+        source: "camera", // Force caméra (pas galerie)
+      });
+
+      if (image.base64String) {
+        const base64 = `data:image/${image.format};base64,${image.base64String}`;
+        setPhoto(base64);
+        // NE PAS ajouter à l'historique ici - sera ajouté quand on clique "Use Photo"
+        setCaptured(true);
+        console.log("📸 Photo prise avec succès (native camera)");
+      }
+    } catch (err: any) {
+      console.error("Erreur caméra native:", err);
+      setError("Unable to access camera: " + err.message);
+    }
+  };
+
+  const startCamera = async () => {
     setError("");
     setShowVideo(true);
 
@@ -36,7 +102,7 @@ export default function CameraCapture() {
 
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: { facingMode: "user" },
         audio: false
       });
 
@@ -80,6 +146,7 @@ export default function CameraCapture() {
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
 
     setPhoto(dataUrl);
+    // NE PAS ajouter à l'historique ici - sera ajouté quand on clique "Use Photo"
     setCaptured(true);
     stopCamera();
   };
@@ -88,8 +155,8 @@ export default function CameraCapture() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!consent) {
-      setError(t.consentUploadError);
+    if (!photoConsent) {
+      setShowConsentModal(true);
       return;
     }
 
@@ -97,6 +164,7 @@ export default function CameraCapture() {
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setPhoto(dataUrl);
+      // NE PAS ajouter à l'historique ici - sera ajouté quand on clique "Use Photo"
       setCaptured(true);
       setError("");
     };
@@ -108,8 +176,22 @@ export default function CameraCapture() {
       setError(t.photoRequired);
       return;
     }
+    // La photo sera automatiquement ajoutée à l'historique quand l'analyse sera terminée
     router.push("/result");
   };
+
+  // Auto-start camera on page load if consent is given
+  useEffect(() => {
+    if (photoConsent && !captured && !showVideo && !stream) {
+      if (isMobile()) {
+        // On mobile, don't auto-start native camera (user needs to tap)
+        // Native camera API requires user interaction
+      } else {
+        // On desktop, auto-start webcam
+        startCamera();
+      }
+    }
+  }, [photoConsent]);
 
   useEffect(() => {
     return () => {
@@ -125,231 +207,211 @@ export default function CameraCapture() {
   }, [stream, showVideo]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Enhanced Header with Progress */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="inline-flex items-center px-3 py-1.5 bg-blue-100 rounded-full">
-                <Camera className="w-4 h-4 text-[#0065B7] mr-1.5" />
-                <span className="text-xs font-semibold text-[#0065B7]">
-                  Step 2/3
-                </span>
-              </div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{t.captureTitle}</h1>
-            </div>
-            {!captured && (
-              <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
-                <Shield className="w-4 h-4 text-green-600" />
-                <span className="font-medium">100% private</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="fixed inset-0 bg-black flex flex-col">
+      {/* Full screen iOS-style camera */}
 
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        {/* Enhanced Consent Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 rounded-2xl p-6 shadow-md">
-          <label className="flex items-start space-x-4 cursor-pointer group">
-            <div className="relative mt-1 flex-shrink-0">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-                className="w-6 h-6 rounded-lg border-2 border-gray-300 text-[#0065B7] focus:ring-2 focus:ring-[#0065B7] cursor-pointer transition-all"
-              />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-base font-bold text-gray-900">{t.consent}</span>
-                <span className="text-xs text-green-700 font-semibold bg-green-100 px-3 py-1 rounded-full border border-green-300">
-                  100% local
-                </span>
-              </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {t.consentText}
+      {!captured && !showVideo && (
+        /* Mode initial - Camera/Gallery choice */
+        <div className="h-full flex flex-col justify-end pb-safe">
+          {/* Top area - Instructions */}
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="text-center">
+              <Camera className="w-20 h-20 text-white mx-auto mb-4 opacity-60" />
+              <h2 className="text-2xl font-semibold text-white mb-3">
+                Take a photo
+              </h2>
+              <p className="text-gray-300 text-base">
+                Position your face in good lighting
               </p>
             </div>
-          </label>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 rounded-r-lg p-4">
-            <div className="flex items-start gap-3">
-              <X className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800 font-medium">{error}</p>
-            </div>
           </div>
-        )}
 
-        {!captured && !showVideo && (
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Camera Option - Professional */}
-            <div className="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-200 hover:border-[#0065B7] hover:shadow-lg transition-all duration-300">
-              <div className="flex flex-col items-center text-center space-y-5">
-                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
-                  <Camera className="w-12 h-12 text-[#0065B7]" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    📸 Camera
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Take a live photo
-                  </p>
-                </div>
-                <Button
-                  onClick={startCamera}
-                  disabled={!consent}
-                  className="w-full bg-gradient-to-r from-[#0065B7] to-[#0088cc] hover:from-[#004a8a] hover:to-[#006699] disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-bold py-6 rounded-xl shadow-md hover:shadow-lg transition-all"
-                  size="lg"
-                >
-                  <Camera className="mr-2 h-5 w-5" />
-                  {t.startCamera}
-                </Button>
-              </div>
-            </div>
+          {/* Bottom controls - iOS style */}
+          <div className="pb-8 px-6">
+            <div className="flex items-center justify-center gap-8 mb-6">
+              {/* Gallery preview button */}
+              <button
+                onClick={() => document.getElementById("file-upload")?.click()}
+                className="w-12 h-12 rounded-lg border-2 border-white/50 flex items-center justify-center hover:border-white transition-all"
+              >
+                <Upload className="w-6 h-6 text-white" />
+              </button>
 
-            {/* Upload Option - Professional */}
-            <div className="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-100 rounded-2xl p-8 border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300">
-              <div className="flex flex-col items-center text-center space-y-5">
-                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
-                  <Upload className="w-12 h-12 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    🖼️ Gallery
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Choose an existing photo
-                  </p>
-                </div>
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  disabled={!consent}
-                />
-                <Button
-                  type="button"
-                  disabled={!consent}
-                  className="w-full bg-white border-2 border-purple-300 hover:border-purple-500 hover:bg-purple-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:cursor-not-allowed text-gray-900 font-bold py-6 rounded-xl shadow-md hover:shadow-lg transition-all"
-                  size="lg"
-                  onClick={() => document.getElementById("file-upload")?.click()}
-                >
-                  <Upload className="mr-2 h-5 w-5" />
-                  {t.upload}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!captured && showVideo && (
-          <div className="space-y-5">
-            <div className="relative rounded-2xl overflow-hidden border-4 border-[#0065B7] shadow-2xl bg-black">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full"
-                style={{ maxHeight: "600px" }}
+              {/* Large round capture button - iOS style */}
+              <button
+                onClick={handleTakePhoto}
+                className="w-20 h-20 rounded-full bg-white border-4 border-gray-800 hover:bg-gray-100 transition-transform active:scale-95 shadow-2xl"
               />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                <p className="text-white text-center text-base font-semibold">
-                  📸 Position your face in the center
+
+              {/* Spacer for symmetry */}
+              <div className="w-12 h-12" />
+            </div>
+
+            <p className="text-center text-xs text-gray-400">
+              Tap the button to capture
+            </p>
+          </div>
+
+          {/* Hidden file input */}
+          <input
+            id="file-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+        </div>
+      )}
+
+      {!captured && showVideo && (
+        /* Full-screen video with iOS-style controls */
+        <div className="h-full flex flex-col">
+          {/* Full screen video preview */}
+          <div className="flex-1 relative">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+
+            {/* Top close button */}
+            <button
+              onClick={stopCamera}
+              className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-all"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Instruction overlay */}
+            <div className="absolute bottom-32 left-0 right-0 px-6">
+              <div className="bg-black/40 backdrop-blur-md rounded-2xl px-6 py-4">
+                <p className="text-white text-center font-medium">
+                  Position your face in the center
                 </p>
               </div>
             </div>
-            <div className="flex gap-4">
-              <Button
-                onClick={stopCamera}
-                variant="outline"
-                size="lg"
-                className="flex-1 border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-600 py-6 rounded-xl font-semibold transition-all"
-              >
-                <X className="mr-2 h-5 w-5" />
-                {t.cancel}
-              </Button>
-              <Button
+          </div>
+
+          {/* Bottom capture button - iOS style */}
+          <div className="pb-8 px-6">
+            <div className="flex items-center justify-center gap-8">
+              {/* Spacer */}
+              <div className="w-12 h-12" />
+
+              {/* Large round capture button */}
+              <button
                 onClick={capturePhoto}
-                className="flex-1 bg-gradient-to-r from-[#0065B7] to-[#0088cc] hover:from-[#004a8a] hover:to-[#006699] text-white font-bold py-6 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                size="lg"
+                className="w-20 h-20 rounded-full bg-white border-4 border-gray-800 hover:bg-gray-100 transition-transform active:scale-95 shadow-2xl"
+              />
+
+              {/* Spacer */}
+              <div className="w-12 h-12" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <canvas ref={canvasRef} className="hidden" />
+
+      {captured && photoBase64 && (
+        /* Full-screen preview with iOS-style actions */
+        <div className="h-full flex flex-col bg-black">
+          {/* Photo preview - full screen */}
+          <div className="flex-1 relative">
+            <img
+              src={photoBase64}
+              alt="Captured photo"
+              className="w-full h-full object-cover"
+            />
+
+            {/* Success badge */}
+            <div className="absolute top-4 right-4">
+              <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
+                <CheckCircle2 className="w-4 h-4" />
+                Captured
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom actions - iOS style */}
+          <div className="pb-8 px-6">
+            <div className="flex items-center gap-4 mb-4">
+              {/* Retake button */}
+              <button
+                onClick={() => {
+                  setCaptured(false);
+                  setPhoto(null);
+                }}
+                className="flex-1 py-4 rounded-2xl bg-gray-800/80 backdrop-blur-sm text-white font-semibold hover:bg-gray-700 transition-all"
               >
-                <Camera className="mr-2 h-6 w-6" />
-                {t.capture}
+                Retake
+              </button>
+
+              {/* Use Photo button */}
+              <button
+                onClick={proceedToResults}
+                className="flex-1 py-4 rounded-2xl bg-green-500 text-white font-semibold hover:bg-green-600 transition-all shadow-lg"
+              >
+                Use Photo
+              </button>
+            </div>
+
+            <p className="text-center text-xs text-gray-400">
+              Your photo will be analyzed for skin insights
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Consent Modal */}
+      {showConsentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-start gap-4 mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Shield className="w-6 h-6 text-[#0065B7]" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  {t.consent}
+                </h3>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {t.consentText}
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-xs font-semibold text-green-700">
+                    100% local - No data sent to servers
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={() => setShowConsentModal(false)}
+                variant="outline"
+                className="flex-1 border-2 border-gray-300 hover:border-gray-400"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConsentAccept}
+                className="flex-1 bg-[#0065B7] hover:bg-[#004a8a]"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                I Agree
               </Button>
             </div>
+
+            <p className="text-xs text-gray-500 text-center mt-4">
+              You can change this in Settings later
+            </p>
           </div>
-        )}
-
-        <canvas ref={canvasRef} className="hidden" />
-
-        {captured && photoBase64 && (
-          <div className="space-y-6">
-            {/* Success Message - Professional */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-6 shadow-md">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                  <CheckCircle2 className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{t.photoCaptured}</h3>
-                  <p className="text-sm text-gray-600">Your photo is ready!</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Photo Preview - Professional */}
-            <div className="bg-white rounded-2xl shadow-xl border-2 border-green-200 overflow-hidden hover:shadow-2xl transition-shadow">
-              <div className="relative">
-                <img
-                  src={photoBase64}
-                  alt="Photo capturée"
-                  className="w-full"
-                />
-                <div className="absolute top-4 right-4">
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg border-2 border-white">
-                    <Sparkles className="w-4 h-4" />
-                    ✓ Validated
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 bg-gradient-to-b from-white to-gray-50 flex gap-4">
-                <Button
-                  onClick={() => {
-                    setCaptured(false);
-                    setPhoto(null);
-                  }}
-                  variant="outline"
-                  className="flex-1 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 py-6 rounded-xl font-bold transition-all"
-                  size="lg"
-                >
-                  <X className="mr-2 h-5 w-5" />
-                  {t.retake}
-                </Button>
-                <Button
-                  onClick={proceedToResults}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-6 rounded-xl shadow-md hover:shadow-lg transition-all"
-                  size="lg"
-                >
-                  <span>{t.viewResults}</span>
-                  <Sparkles className="ml-2 h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

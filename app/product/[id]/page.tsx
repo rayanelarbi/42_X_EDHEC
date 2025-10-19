@@ -21,7 +21,7 @@ export default function ProductDetailPage() {
   const product = Object.values(products).find((p) => p.id === productId);
 
   // Déterminer si c'est le produit recommandé pour afficher les ingrédients
-  const isRecommended = result?.productKey === productId;
+  const isRecommended = result?.recommendedProducts?.includes(productId as any) || false;
   const scoringData = isRecommended
     ? scoringTranslations["en"][productId === "duo-eclat" ? "duoEclat" : "repairingSerum"]
     : null;
@@ -44,7 +44,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     addToCart({
       id: product.id,
-      name: product.shortName,
+      name: product.name,
       price: product.price,
       image: product.image,
     });
@@ -71,22 +71,20 @@ export default function ProductDetailPage() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        {/* Badge recommandé */}
-        {isRecommended && (
-          <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl shadow-lg flex items-center gap-3">
-            <Sparkles className="w-6 h-6" />
-            <span className="font-bold text-lg">
-              ✨ Recommended for you
-            </span>
-          </div>
-        )}
-
         {/* Product Header */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Image */}
           <div className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg p-8">
             <div className="w-full aspect-square bg-gray-50 rounded-xl flex items-center justify-center">
-              <span className="text-9xl">🧴</span>
+              {product.image && product.image.startsWith('http') ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="text-9xl">🧴</span>
+              )}
             </div>
           </div>
 

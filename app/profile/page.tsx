@@ -1,21 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
-import { translations } from "@/lib/translations";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Edit2, Check, X, User } from "lucide-react";
+import {
+  User,
+  Calendar,
+  Settings,
+  RefreshCw,
+  ChevronRight,
+  ShoppingBag,
+  Sparkles
+} from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
   const quiz = useAppStore((state) => state.quiz);
-  const setQuiz = useAppStore((state) => state.setQuiz);
-  const t = translations["en"].quiz;
-
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [tempValue, setTempValue] = useState<any>(null);
+  const photoBase64 = useAppStore((state) => state.photoBase64);
+  const resetStore = useAppStore((state) => state.reset);
 
   if (!quiz || Object.keys(quiz).length === 0) {
     return (
@@ -36,184 +39,50 @@ export default function ProfilePage() {
     );
   }
 
-  const startEditing = (field: string, currentValue: any) => {
-    setEditingField(field);
-    setTempValue(currentValue);
-  };
-
-  const cancelEditing = () => {
-    setEditingField(null);
-    setTempValue(null);
-  };
-
-  const saveEdit = (field: string) => {
-    setQuiz({ [field]: tempValue });
-    setEditingField(null);
-    setTempValue(null);
-  };
-
-  const toggleMultipleChoice = (field: string, value: string) => {
-    const currentValues = tempValue || [];
-
-    // Check if we're trying to add and if we've reached the limit
-    if (!currentValues.includes(value)) {
-      // Check limits for specific fields
-      if (field === "objectives" && currentValues.length >= 3) {
-        return; // Don't allow more than 3 objectives
-      }
+  const navigationSections = [
+    {
+      title: "Personal Information",
+      description: "View and edit your profile details",
+      icon: User,
+      path: "/profile/edit",
+      gradient: "from-blue-500 to-blue-600",
+      iconBg: "bg-blue-100",
+      iconColor: "text-blue-600"
+    },
+    {
+      title: "My Routine",
+      description: "View your daily skincare routine",
+      icon: Calendar,
+      path: "/routine",
+      gradient: "from-green-500 to-green-600",
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600"
+    },
+    {
+      title: "My Photos",
+      description: "View your skin analysis photos",
+      icon: Sparkles,
+      path: "/result",
+      gradient: "from-pink-500 to-pink-600",
+      iconBg: "bg-pink-100",
+      iconColor: "text-pink-600"
+    },
+    {
+      title: "Products",
+      description: "Browse and shop recommended products",
+      icon: ShoppingBag,
+      path: "/cart",
+      gradient: "from-orange-500 to-orange-600",
+      iconBg: "bg-orange-100",
+      iconColor: "text-orange-600"
     }
+  ];
 
-    const newValues = currentValues.includes(value)
-      ? currentValues.filter((v: string) => v !== value)
-      : [...currentValues, value];
-    setTempValue(newValues);
-  };
-
-  const renderField = (
-    field: string,
-    label: string,
-    currentValue: any,
-    options?: { [key: string]: string } | string[],
-    isMultiple = false
-  ) => {
-    const isEditing = editingField === field;
-
-    return (
-      <Card key={field} className="p-6 border-2 border-gray-200 hover:border-gray-300 transition-all">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="font-bold text-lg text-gray-900 mb-2">{label}</h3>
-            {!isEditing && (
-              <div className="text-gray-700">
-                {isMultiple ? (
-                  <div className="flex flex-wrap gap-2">
-                    {(currentValue as string[])?.map((val: string) => (
-                      <span
-                        key={val}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                      >
-                        {val}
-                      </span>
-                    )) || (
-                      <span className="text-gray-400 italic">
-                        No selection
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-base">
-                    {options
-                      ? Array.isArray(options)
-                        ? currentValue || "Not provided"
-                        : options[currentValue as keyof typeof options] || currentValue || "Not provided"
-                      : currentValue || "Not provided"}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-          {!isEditing && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => startEditing(field, currentValue)}
-              className="ml-4 border-2 border-gray-300 hover:border-[#0065B7] hover:bg-blue-50"
-            >
-              <Edit2 className="w-4 h-4 mr-1" />
-              Edit
-            </Button>
-          )}
-        </div>
-
-        {isEditing && (
-          <div className="space-y-4 border-t-2 border-gray-200 pt-4">
-            {/* Show limit warning for objectives */}
-            {isMultiple && field === "objectives" && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm font-semibold text-blue-800">
-                  Maximum 3 objectives ({tempValue?.length || 0}/3)
-                </p>
-              </div>
-            )}
-            {isMultiple ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {(Array.isArray(options) ? options : Object.keys(options || {})).map((option) => {
-                  const value = typeof option === "string" ? option : option;
-                  const isSelected = tempValue?.includes(value);
-                  const isDisabled = !isSelected && field === "objectives" && tempValue?.length >= 3;
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => toggleMultipleChoice(field, value)}
-                      disabled={isDisabled}
-                      className={`p-3 border-2 rounded-lg text-left transition-all ${
-                        isSelected
-                          ? "border-[#0065B7] bg-blue-50 ring-2 ring-blue-200"
-                          : isDisabled
-                          ? "border-gray-200 bg-gray-100 cursor-not-allowed opacity-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">{value}</span>
-                        {isSelected && (
-                          <div className="w-5 h-5 bg-[#0065B7] rounded-full flex items-center justify-center">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {Object.entries(options || {}).map(([key, value]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setTempValue(key)}
-                    className={`p-4 border-2 rounded-lg text-left transition-all ${
-                      tempValue === key
-                        ? "border-[#0065B7] bg-blue-50 ring-2 ring-blue-200"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">{value}</span>
-                      {tempValue === key && (
-                        <div className="w-5 h-5 bg-[#0065B7] rounded-full flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                onClick={() => saveEdit(field)}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button
-                onClick={cancelEditing}
-                variant="outline"
-                className="flex-1 border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-600"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
-    );
+  const handleStartOver = () => {
+    if (confirm("Are you sure you want to start over? This will reset all your data.")) {
+      resetStore();
+      router.push("/");
+    }
   };
 
   return (
@@ -221,19 +90,10 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
-          <div className="flex items-center justify-between py-4">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-700 hover:text-[#0065B7] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-semibold">
-                Back
-              </span>
-            </button>
+          <div className="flex items-center justify-center py-4">
             <div className="flex items-center gap-2">
-              <User className="w-5 h-5 text-[#0065B7]" />
-              <span className="font-bold text-xl tracking-tight text-gray-900">
+              <User className="w-6 h-6 text-[#0065B7]" />
+              <span className="font-bold text-2xl tracking-tight text-gray-900">
                 My Profile
               </span>
             </div>
@@ -245,114 +105,93 @@ export default function ProfilePage() {
         {/* Hero */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-            Your information
+            Welcome back!
           </h1>
           <p className="text-lg text-gray-600">
-            Edit your answers to refine your recommendations
+            Access all your skincare information in one place
           </p>
         </div>
 
-        {/* Fields Grid */}
-        <div className="space-y-6">
-          {/* Informations de base */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center text-white font-bold">
-                1
-              </div>
-              Basic information
-            </h2>
-            <div className="grid gap-4">
-              {renderField("sex", t.sex, quiz.sex, { male: t.male, female: t.female })}
-              {renderField("ageRange", t.ageRange, quiz.ageRange, t.ageRanges)}
-              {renderField("location", t.location, quiz.location, t.locationOptions)}
-            </div>
-          </div>
-
-          {/* Type de peau */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center text-white font-bold">
-                2
-              </div>
-              Your skin
-            </h2>
-            <div className="grid gap-4">
-              {renderField("skinType", t.skinType, quiz.skinType, t.skinTypes)}
-              {renderField(
-                "skinConcerns",
-                t.skinConcerns,
-                quiz.skinConcerns,
-                t.skinConcernsList,
-                true
-              )}
-              {renderField("objectives", t.objectives, quiz.objectives, t.objectivesList, true)}
-              {renderField(
-                "dermaConditions",
-                t.dermaConditions,
-                quiz.dermaConditions,
-                t.dermaConditionsList,
-                true
-              )}
-            </div>
-          </div>
-
-          {/* Mode de vie */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center text-white font-bold">
-                3
-              </div>
-              Lifestyle
-            </h2>
-            <div className="grid gap-4">
-              {renderField(
-                "currentRoutineLevel",
-                t.currentRoutineLevel,
-                quiz.currentRoutineLevel,
-                t.routineLevels
-              )}
-              {renderField("sunExposure", t.sunExposure, quiz.sunExposure, t.sunExposureLevels)}
-              {renderField("stressLevel", t.stressLevel, quiz.stressLevel, t.stressLevels)}
-            </div>
-          </div>
-
-          {/* Préférences */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#0065B7] rounded-full flex items-center justify-center text-white font-bold">
-                4
-              </div>
-              Preferences
-            </h2>
-            <div className="grid gap-4">
-              {renderField(
-                "preferences",
-                t.preferences,
-                quiz.preferences,
-                t.preferencesList,
-                true
-              )}
-              {renderField("budget", t.budget, quiz.budget, t.budgetRanges)}
-            </div>
-          </div>
+        {/* Navigation Sections Grid */}
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          {navigationSections.map((section) => {
+            const Icon = section.icon;
+            return (
+              <button
+                key={section.path}
+                onClick={() => router.push(section.path)}
+                className="group bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-[#0065B7] transition-all duration-300 hover:shadow-lg text-left"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className={`w-14 h-14 ${section.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-7 h-7 ${section.iconColor}`} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-[#0065B7] transition-colors">
+                        {section.title}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {section.description}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#0065B7] group-hover:translate-x-1 transition-all flex-shrink-0 mt-1" />
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Actions */}
-        <div className="mt-12 flex flex-col sm:flex-row gap-4">
-          <Button
-            onClick={() => router.push("/result")}
-            className="flex-1 bg-[#0065B7] hover:bg-[#004a8a] text-white py-6 text-lg"
+        {/* Settings Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Settings</h2>
+          <button
+            onClick={() => router.push("/settings")}
+            className="group w-full bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-md text-left"
           >
-            View my results
-          </Button>
-          <Button
-            onClick={() => router.push("/")}
-            variant="outline"
-            className="flex-1 border-2 border-gray-300 hover:border-gray-400 py-6 text-lg"
-          >
-            Back to home
-          </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <Settings className="w-7 h-7 text-gray-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    App Settings
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Preferences, notifications, and more
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+        </div>
+
+        {/* Start Over Button */}
+        <div className="border-2 border-red-200 rounded-2xl p-6 bg-red-50">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <RefreshCw className="w-6 h-6 text-red-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Start Over
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Reset all your data and start fresh with a new skin analysis
+              </p>
+              <Button
+                onClick={handleStartOver}
+                variant="outline"
+                className="border-2 border-red-300 hover:border-red-500 hover:bg-red-100 text-red-700 font-semibold"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Reset Everything
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -3,15 +3,17 @@ import { QuizData, Persona, ProductKey, IngredientCard } from "@/store/useAppSto
 export function determinePersonaAndProduct(quiz: QuizData): {
   persona: Persona;
   productKey: ProductKey;
+  recommendedProducts: ProductKey[];
   ingredients: IngredientCard[];
   irritationGuard: string[];
 } {
   const isElise = quiz.sex === "female";
-  
+
   if (isElise) {
     return {
       persona: "elise",
-      productKey: "duo-eclat",
+      productKey: "vitamin-c-moisturizer",
+      recommendedProducts: ["vitamin-c-moisturizer", "bha-exfoliant"],
       ingredients: [
         {
           name: "Acide BHA (Salicylique)",
@@ -44,6 +46,7 @@ export function determinePersonaAndProduct(quiz: QuizData): {
     return {
       persona: "marc",
       productKey: "repairing-serum",
+      recommendedProducts: ["repairing-serum", "rescue-repair-moisturizer"],
       ingredients: [
         {
           name: "Peptides",

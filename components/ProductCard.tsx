@@ -22,7 +22,7 @@ export default function ProductCard({ product, showDetails = false }: ProductCar
     e.stopPropagation();
     addToCart({
       id: product.id,
-      name: product.shortName,
+      name: product.name,
       price: product.price,
       image: product.image,
     });
@@ -61,14 +61,22 @@ export default function ProductCard({ product, showDetails = false }: ProductCar
 
       <CardContent className="p-0">
         <div className="relative h-80 bg-gray-50 flex items-center justify-center border-b border-gray-200">
-          <div className="text-center p-6">
-            <div className="w-48 h-48 mx-auto bg-white rounded-full flex items-center justify-center mb-3 shadow-sm border border-gray-100">
-              <span className="text-7xl">🧴</span>
+          {product.image && product.image.startsWith('http') ? (
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-contain p-6"
+            />
+          ) : (
+            <div className="text-center p-6">
+              <div className="w-48 h-48 mx-auto bg-white rounded-full flex items-center justify-center mb-3 shadow-sm border border-gray-100">
+                <span className="text-7xl">🧴</span>
+              </div>
+              <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">
+                Product image
+              </p>
             </div>
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wide">
-              Product image
-            </p>
-          </div>
+          )}
         </div>
 
         <div className="p-6 space-y-4">

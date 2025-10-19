@@ -37,8 +37,8 @@ export type SkinAnalysisResult = {
 };
 
 // Configuration pour basculer entre MOCK et API réelle
-const USE_MOCK_API = true; // Mettre à false pour utiliser la vraie API
-const ZYLA_API_KEY = "YOUR_API_KEY_HERE"; // À remplacer dans 1 semaine
+const USE_MOCK_API = false; // Mettre à false pour utiliser la vraie API
+const USE_AILABTOOLS_API = true; // Utiliser l'API AILab Tools
 
 /**
  * Analyse une image de visage pour détecter les problèmes de peau
@@ -48,8 +48,50 @@ const ZYLA_API_KEY = "YOUR_API_KEY_HERE"; // À remplacer dans 1 semaine
 export async function analyzeSkin(imageBase64: string): Promise<SkinAnalysisResult> {
   if (USE_MOCK_API) {
     return mockSkinAnalysis(imageBase64);
+  } else if (USE_AILABTOOLS_API) {
+    return aiLabToolsAnalysis(imageBase64);
   } else {
-    return realSkinAnalysis(imageBase64);
+    // Fallback sur le mock si aucune API n'est configurée
+    return mockSkinAnalysis(imageBase64);
+  }
+}
+
+/**
+ * AILab Tools API - Analyse de peau professionnelle
+ */
+async function aiLabToolsAnalysis(imageBase64: string): Promise<SkinAnalysisResult> {
+  try {
+    console.log("📸 Début de l'analyse avec AILab Tools API");
+
+    // Appeler notre route API Next.js qui communique avec AILab Tools
+    const response = await fetch('/api/skin-analysis', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: imageBase64,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("⚠️ Erreur API AILab Tools, utilisation du fallback");
+      return mockSkinAnalysis(imageBase64);
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.result) {
+      console.log("✅ Analyse AILab Tools réussie:", data.result);
+      return data.result;
+    } else {
+      console.error("⚠️ Réponse API invalide, utilisation du fallback");
+      return mockSkinAnalysis(imageBase64);
+    }
+  } catch (error) {
+    console.error("❌ Erreur lors de l'appel à l'API AILab Tools:", error);
+    // Fallback sur le mock en cas d'erreur
+    return mockSkinAnalysis(imageBase64);
   }
 }
 
@@ -136,7 +178,7 @@ async function mockSkinAnalysis(imageBase64: string): Promise<SkinAnalysisResult
     const rightCheekAnalysis = analyzeRegion(imageData, rightCheekRegion, "acne");
     const noseAnalysis = analyzeRegion(imageData, noseRegion, "pore");
 
-    if (leftCheekAnalysis.severity > 30) {
+    if (leftCheekAnalysis.severity > 50) {
       problems.push({
         type: "acne",
         severity: leftCheekAnalysis.severity,
@@ -145,7 +187,7 @@ async function mockSkinAnalysis(imageBase64: string): Promise<SkinAnalysisResult
       });
     }
 
-    if (rightCheekAnalysis.severity > 30) {
+    if (rightCheekAnalysis.severity > 50) {
       problems.push({
         type: "acne",
         severity: rightCheekAnalysis.severity,
@@ -154,7 +196,7 @@ async function mockSkinAnalysis(imageBase64: string): Promise<SkinAnalysisResult
       });
     }
 
-    if (noseAnalysis.severity > 25) {
+    if (noseAnalysis.severity > 45) {
       problems.push({
         type: "pore",
         severity: noseAnalysis.severity,
@@ -166,10 +208,10 @@ async function mockSkinAnalysis(imageBase64: string): Promise<SkinAnalysisResult
     console.log("🔴 Acné (MediaPipe):", problems.filter(p => p.type === "acne").length);
     console.log("🔍 Pores (MediaPipe):", problems.filter(p => p.type === "pore").length);
 
-    // Détection complémentaire de taches sombres
+    // Détection complémentaire de taches sombres (limité à 2 max)
     const darkSpotZones = detectDarkSpotsIntelligent(imageData);
     console.log("⚫ Taches sombres détectées:", darkSpotZones.length);
-    darkSpotZones.slice(0, 3).forEach(zone => {
+    darkSpotZones.slice(0, 2).forEach(zone => {
       problems.push({
         type: "dark_spot",
         severity: zone.severity,
@@ -254,69 +296,6 @@ async function mockSkinAnalysis(imageBase64: string): Promise<SkinAnalysisResult
   };
 }
 
-/**
- * Vraie API Zyla - Sera utilisée dans 1 semaine
- */
-async function realSkinAnalysis(imageBase64: string): Promise<SkinAnalysisResult> {
-  try {
-    const response = await fetch("https://zylalabs.com/api/4442/skin+analyze+advanced+api/4933/skin+analysis", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${ZYLA_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        image: imageBase64,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("API call failed");
-    }
-
-    const data = await response.json();
-
-    // Transformer la réponse de l'API au format de notre app
-    return transformZylaResponse(data);
-  } catch (error) {
-    console.error("Erreur API Zyla:", error);
-    // Fallback sur le mock en cas d'erreur
-    return mockSkinAnalysis(imageBase64);
-  }
-}
-
-/**
- * Transformer la réponse de l'API Zyla dans notre format
- */
-function transformZylaResponse(zylaData: any): SkinAnalysisResult {
-  const problems: SkinProblem[] = [];
-
-  // Mapper les problèmes détectés par Zyla
-  if (zylaData.acne && zylaData.acne.length > 0) {
-    zylaData.acne.forEach((acne: any) => {
-      problems.push({
-        type: "acne",
-        severity: acne.confidence || 50,
-        location: {
-          x: acne.location.x,
-          y: acne.location.y,
-          width: acne.location.width,
-          height: acne.location.height,
-        },
-        confidence: acne.confidence || 85,
-      });
-    });
-  }
-
-  // Ajouter d'autres mappings selon la réponse de l'API...
-
-  return {
-    problems,
-    skinType: zylaData.skin_type || "normal",
-    overallScore: zylaData.skin_quality?.score || 75,
-    recommendations: generateRecommendations(problems),
-  };
-}
 
 /**
  * Détecte les landmarks du visage avec MediaPipe Face Mesh
@@ -626,7 +605,7 @@ function detectRedZonesIntelligent(imageData: ImageData): DetectionResult[] {
   }
 
   const avgGlobalRedness = globalRedScore / globalPixels;
-  const adaptiveThreshold = Math.max(5, avgGlobalRedness + 6); // Seuil adaptatif basé sur l'image
+  const adaptiveThreshold = Math.max(15, avgGlobalRedness + 15); // Seuil BEAUCOUP plus strict
 
   for (let y = startY; y < endY; y += blockSize) {
     for (let x = startX; x < endX; x += blockSize) {
@@ -645,8 +624,8 @@ function detectRedZonesIntelligent(imageData: ImageData): DetectionResult[] {
           // Calcul de la "rougeur" (différence entre rouge et autres canaux)
           const redness = r - ((g + b) / 2);
 
-          // Si le pixel est significativement plus rouge QUE LA MOYENNE
-          if (redness > adaptiveThreshold && r > 100) {
+          // Si le pixel est significativement plus rouge QUE LA MOYENNE (seuil très strict)
+          if (redness > adaptiveThreshold && r > 120) {
             redScore += redness;
           }
 
@@ -678,8 +657,8 @@ function detectRedZonesIntelligent(imageData: ImageData): DetectionResult[] {
     }
   }
 
-  // Limiter à un nombre variable selon le nombre détecté
-  const maxZones = Math.min(zones.length, Math.max(2, Math.floor(zones.length * 0.5)));
+  // Limiter drastiquement le nombre de zones détectées
+  const maxZones = Math.min(zones.length, 2); // Maximum 2 zones d'acné
   return zones.sort((a, b) => b.severity - a.severity).slice(0, maxZones);
 }
 
@@ -765,8 +744,8 @@ function detectDarkSpotsIntelligent(imageData: ImageData): DetectionResult[] {
     }
   }
 
-  // Nombre variable de zones détectées
-  const maxZones = Math.min(zones.length, Math.max(1, Math.floor(zones.length * 0.4)));
+  // Limiter à 1 zone maximum
+  const maxZones = Math.min(zones.length, 1);
   return zones.sort((a, b) => b.severity - a.severity).slice(0, maxZones);
 }
 

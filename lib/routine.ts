@@ -1,7 +1,8 @@
 import { ProductKey, Routine, RoutineStep } from "@/store/useAppStore";
 
 export function buildRoutine(productKey: ProductKey): Routine {
-  if (productKey === "duo-eclat") {
+  if (productKey === "vitamin-c-moisturizer" || productKey === "bha-exfoliant") {
+    // Routine pour femmes
     const steps: RoutineStep[] = [
       {
         time: "morning",
@@ -51,6 +52,7 @@ export function buildRoutine(productKey: ProductKey): Routine {
 
     return { productKey, steps };
   } else {
+    // Routine pour hommes
     const steps: RoutineStep[] = [
       {
         time: "morning",

@@ -26,7 +26,7 @@ export default function BeforeAfter({ photoBase64, productKey }: BeforeAfterProp
 
   useEffect(() => {
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       if (beforeCanvasRef.current) {
         const beforeCtx = beforeCanvasRef.current.getContext("2d");
         if (beforeCtx) {
@@ -43,7 +43,7 @@ export default function BeforeAfter({ photoBase64, productKey }: BeforeAfterProp
 
       if (afterCanvasRef.current) {
         // Passer les problèmes détectés au filtre pour un traitement ciblé
-        const afterCanvas = simulateAfter(img, productKey, skinAnalysis?.problems);
+        const afterCanvas = await simulateAfter(img, productKey, skinAnalysis?.problems);
         const afterCtx = afterCanvasRef.current.getContext("2d");
         if (afterCtx) {
           afterCanvasRef.current.width = afterCanvas.width;

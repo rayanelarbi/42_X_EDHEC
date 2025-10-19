@@ -26,8 +26,76 @@ export default function RoutinePage() {
   const [completedDays, setCompletedDays] = useState<{[key: string]: {morning: boolean, evening: boolean}}>({});
 
   if (!result) {
-    router.push("/");
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
+        <Card className="p-8 max-w-2xl w-full text-center border-2 border-blue-200 shadow-xl">
+          <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CalendarIcon className="w-12 h-12 text-[#0065B7]" />
+          </div>
+
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            No routine yet
+          </h2>
+
+          <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+            Complete the questionnaire to unlock your personalized skincare routine tailored to your skin type and goals.
+          </p>
+
+          <div className="bg-blue-50 rounded-xl p-6 mb-8">
+            <h3 className="font-bold text-gray-900 mb-3 text-lg">What you'll get:</h3>
+            <div className="space-y-3 text-left">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-[#0065B7] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-gray-700 text-sm">
+                  <strong className="text-gray-900">Personalized routine</strong> - Morning and evening steps tailored to your skin
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-[#0065B7] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-gray-700 text-sm">
+                  <strong className="text-gray-900">Progress tracking</strong> - Calendar to track your daily routine completion
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-[#0065B7] rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-gray-700 text-sm">
+                  <strong className="text-gray-900">Product recommendations</strong> - Science-based skincare products for your needs
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              onClick={() => router.push("/quiz")}
+              size="lg"
+              className="bg-[#0065B7] hover:bg-[#004a8a] text-white px-8 py-6 text-lg font-semibold shadow-lg"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Start Questionnaire
+            </Button>
+            <Button
+              onClick={() => router.push("/")}
+              size="lg"
+              variant="outline"
+              className="border-2 border-gray-300 hover:border-[#0065B7] px-8 py-6 text-lg font-semibold"
+            >
+              Learn More
+            </Button>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-6">
+            Takes only 2-3 minutes • 100% free • All data stored locally
+          </p>
+        </Card>
+      </div>
+    );
   }
 
   const morningSteps = result.routine.steps.filter((s) => s.time === "morning");

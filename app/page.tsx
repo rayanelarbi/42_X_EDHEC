@@ -1,14 +1,225 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Shield, Sparkles, Award } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowRight, CheckCircle2, Shield, Sparkles, Award, Calendar, Camera, TrendingUp, User, ShoppingBag, Package } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { translations } from "@/lib/translations";
 
 export default function Home() {
+  const router = useRouter();
   const t = translations["en"];
+  const result = useAppStore((state) => state.result);
+  const photos = useAppStore((state) => state.photos);
+  const quiz = useAppStore((state) => state.quiz);
 
+  // Dashboard for users who completed the quiz
+  if (result && quiz && Object.keys(quiz).length > 0) {
+    const startDate = result.startDate ? new Date(result.startDate) : new Date();
+    const endDate = result.endDate ? new Date(result.endDate) : new Date(Date.now() + 84 * 24 * 60 * 60 * 1000);
+    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysPassed = Math.ceil((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const progressPercentage = Math.min(Math.round((daysPassed / totalDays) * 100), 100);
+    const daysRemaining = Math.max(totalDays - daysPassed, 0);
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-16">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+          <div className="max-w-6xl mx-auto px-4 md:px-6">
+            <div className="flex items-center justify-between py-4">
+              <h1 className="text-2xl font-bold text-gray-900">Paula's Choice</h1>
+              <button
+                onClick={() => router.push("/profile")}
+                className="flex items-center gap-2 text-gray-700 hover:text-[#0065B7] transition-colors"
+              >
+                <User className="w-5 h-5" />
+                <span className="font-medium hidden md:inline">Profile</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Welcome back! 👋
+            </h1>
+            <p className="text-lg text-gray-600">
+              Here's your skincare journey overview
+            </p>
+          </div>
+
+          {/* Progress Card */}
+          <Card className="mb-8 p-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 shadow-lg">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp className="w-6 h-6 text-[#0065B7]" />
+              <h2 className="text-2xl font-bold text-gray-900">Your Progress</h2>
+            </div>
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex-1 w-full">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">
+                    12-week routine progress
+                  </span>
+                  <span className="text-2xl font-bold text-[#0065B7]">{progressPercentage}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                  <div
+                    className="bg-gradient-to-r from-[#0065B7] to-[#0088cc] h-4 rounded-full transition-all duration-500"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-xs text-gray-600 mb-1">Started</p>
+                    <p className="font-bold text-sm text-gray-900">
+                      {startDate.toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 mb-1">Days left</p>
+                    <p className="font-bold text-sm text-gray-900">{daysRemaining}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600 mb-1">Goal date</p>
+                    <p className="font-bold text-sm text-gray-900">
+                      {endDate.toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Quick Actions Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            {/* My Routine */}
+            <button
+              onClick={() => router.push("/routine")}
+              className="group bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-[#0065B7] transition-all duration-300 hover:shadow-lg text-left"
+            >
+              <div className="w-14 h-14 bg-gradient-to-r from-green-400 to-green-500 rounded-xl flex items-center justify-center mb-4">
+                <Calendar className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0065B7] transition-colors">
+                My Routine
+              </h3>
+              <p className="text-sm text-gray-600">
+                View your daily skincare steps
+              </p>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#0065B7] group-hover:translate-x-1 transition-all mt-4" />
+            </button>
+
+            {/* Progress Photos */}
+            <button
+              onClick={() => router.push("/result")}
+              className="group bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-[#0065B7] transition-all duration-300 hover:shadow-lg text-left"
+            >
+              <div className="w-14 h-14 bg-gradient-to-r from-pink-400 to-pink-500 rounded-xl flex items-center justify-center mb-4">
+                <Camera className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0065B7] transition-colors">
+                Progress Photos
+              </h3>
+              <p className="text-sm text-gray-600">
+                {photos.length} {photos.length === 1 ? "photo" : "photos"} tracked
+              </p>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#0065B7] group-hover:translate-x-1 transition-all mt-4" />
+            </button>
+
+            {/* Shop Products */}
+            <button
+              onClick={() => router.push("/cart")}
+              className="group bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-[#0065B7] transition-all duration-300 hover:shadow-lg text-left"
+            >
+              <div className="w-14 h-14 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl flex items-center justify-center mb-4">
+                <ShoppingBag className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0065B7] transition-colors">
+                Shop Products
+              </h3>
+              <p className="text-sm text-gray-600">
+                Browse recommended items
+              </p>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#0065B7] group-hover:translate-x-1 transition-all mt-4" />
+            </button>
+          </div>
+
+          {/* Recommended Product */}
+          <Card className="p-6 border-2 border-gray-200 bg-gradient-to-br from-blue-50 to-purple-50">
+            <div className="flex items-center gap-3 mb-4">
+              <Package className="w-6 h-6 text-[#0065B7]" />
+              <h2 className="text-2xl font-bold text-gray-900">Your Recommended Product</h2>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="w-32 h-32 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-16 h-16 text-[#0065B7]" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  Your Personalized Skincare
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Tailored for your {result.summary.skinType} skin
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+                  {result.summary.mainConcerns.map((concern, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                      {concern}
+                    </span>
+                  ))}
+                </div>
+                <Button
+                  onClick={() => router.push("/cart")}
+                  className="bg-[#0065B7] hover:bg-[#004a8a]"
+                >
+                  <ShoppingBag className="w-4 h-4 mr-2" />
+                  Shop Now
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* Tips Section */}
+          <div className="mt-8 grid md:grid-cols-2 gap-4">
+            <Card className="p-6 border-2 border-green-200 bg-green-50">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Daily Tip</h3>
+                  <p className="text-sm text-gray-700">
+                    Apply sunscreen every morning, even on cloudy days. It's the most important anti-aging step!
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 border-2 border-purple-200 bg-purple-50">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Motivation</h3>
+                  <p className="text-sm text-gray-700">
+                    Keep going! Consistency is key to seeing real results. You're {progressPercentage}% there!
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Landing page for new users
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Bar */}

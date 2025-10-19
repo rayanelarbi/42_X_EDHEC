@@ -1,13 +1,17 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.exemple.monpoc',
-  appName: 'MonPOC',
+  appId: 'com.paulaschoice.skincare',
+  appName: "Paula's Choice",
   webDir: 'out',
   server: {
-    url: 'https://carrying-content-goals-alicoen.trycloudflare.com', // ex: 172.20.10.2 si hotspot iPhone
-    cleartext: true,
+    androidScheme: 'https'
   },
+  plugins: {
+    Camera: {
+      permissions: ['camera', 'photos']
+    }
+  }
 };
 
 export default config;
