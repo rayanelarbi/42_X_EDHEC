@@ -1,9 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/routine/page": "app/routine/page.js",
-  "/page": "app/page.js",
+  "/api/beauty-filter/route": "app/api/beauty-filter/route.js",
   "/camera/page": "app/camera/page.js",
-  "/product/[id]/page": "app/product/[id]/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/cart/page": "app/cart/page.js"
+  "/result/page": "app/result/page.js",
+  "/api/skin-analysis/route": "app/api/skin-analysis/route.js"
 }

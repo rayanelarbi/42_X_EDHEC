@@ -207,14 +207,14 @@ export default function CameraCapture() {
   }, [stream, showVideo]);
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col">
-      {/* Full screen iOS-style camera */}
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 to-black md:bg-black flex flex-col items-center justify-center md:p-8">
+      {/* Full screen iOS-style camera for mobile, card for desktop */}
 
       {!captured && !showVideo && (
         /* Mode initial - Camera/Gallery choice */
-        <div className="h-full flex flex-col justify-end pb-safe">
+        <div className="h-full md:h-auto md:max-w-2xl md:w-full md:bg-gray-900 md:rounded-3xl md:shadow-2xl flex flex-col justify-end md:justify-center pb-safe md:pb-0">
           {/* Top area - Instructions */}
-          <div className="flex-1 flex items-center justify-center px-6">
+          <div className="flex-1 md:flex-none flex items-center justify-center px-6 md:py-12">
             <div className="text-center">
               <Camera className="w-20 h-20 text-white mx-auto mb-4 opacity-60" />
               <h2 className="text-2xl font-semibold text-white mb-3">
@@ -227,8 +227,8 @@ export default function CameraCapture() {
           </div>
 
           {/* Bottom controls - iOS style */}
-          <div className="pb-8 px-6">
-            <div className="flex items-center justify-center gap-8 mb-6">
+          <div className="px-6 pb-safe">
+            <div className="flex items-center justify-center gap-8 mb-4">
               {/* Gallery preview button */}
               <button
                 onClick={() => document.getElementById("file-upload")?.click()}
@@ -264,39 +264,44 @@ export default function CameraCapture() {
       )}
 
       {!captured && showVideo && (
-        /* Full-screen video with iOS-style controls */
-        <div className="h-full flex flex-col">
-          {/* Full screen video preview */}
-          <div className="flex-1 relative">
+        /* Full-screen video for mobile, card format for desktop */
+        <div className="h-full md:h-auto md:max-w-4xl md:w-full md:max-h-[70vh] md:mx-auto flex flex-col md:bg-gray-900 md:rounded-3xl md:shadow-2xl md:overflow-hidden">
+          {/* Video preview with better desktop layout */}
+          <div className="flex-1 md:flex-none relative min-h-0 md:h-auto md:max-h-[50vh] md:bg-black">
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover md:w-auto md:h-full md:max-w-full md:object-contain md:mx-auto md:block"
             />
 
             {/* Top close button */}
             <button
               onClick={stopCamera}
-              className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-all"
+              className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-all z-10"
             >
               <X className="w-6 h-6 text-white" />
             </button>
 
-            {/* Instruction overlay */}
-            <div className="absolute bottom-32 left-0 right-0 px-6">
-              <div className="bg-black/40 backdrop-blur-md rounded-2xl px-6 py-4">
-                <p className="text-white text-center font-medium">
+            {/* Instruction overlay - only on mobile */}
+            <div className="md:hidden absolute bottom-4 left-0 right-0 px-6 z-10">
+              <div className="bg-black/40 backdrop-blur-md rounded-2xl px-6 py-3">
+                <p className="text-white text-center font-medium text-sm">
                   Position your face in the center
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Bottom capture button - iOS style */}
-          <div className="pb-8 px-6">
-            <div className="flex items-center justify-center gap-8">
+          {/* Bottom capture button - Always visible on desktop */}
+          <div className="pt-6 px-6 pb-safe md:pb-32 bg-black md:bg-gray-900 flex-shrink-0">
+            {/* Desktop instruction */}
+            <p className="hidden md:block text-center text-sm text-gray-300 mb-4">
+              Position your face in the center and click to capture
+            </p>
+
+            <div className="flex items-center justify-center gap-8 mb-4">
               {/* Spacer */}
               <div className="w-12 h-12" />
 
@@ -309,6 +314,9 @@ export default function CameraCapture() {
               {/* Spacer */}
               <div className="w-12 h-12" />
             </div>
+            <p className="md:hidden text-center text-xs text-gray-400">
+              Click to capture
+            </p>
           </div>
         </div>
       )}
@@ -316,18 +324,18 @@ export default function CameraCapture() {
       <canvas ref={canvasRef} className="hidden" />
 
       {captured && photoBase64 && (
-        /* Full-screen preview with iOS-style actions */
-        <div className="h-full flex flex-col bg-black">
-          {/* Photo preview - full screen */}
-          <div className="flex-1 relative">
+        /* Full-screen preview for mobile, card for desktop */
+        <div className="h-full md:h-auto md:max-w-4xl md:w-full md:max-h-[70vh] md:mx-auto flex flex-col bg-black md:bg-gray-900 md:rounded-3xl md:shadow-2xl md:overflow-hidden">
+          {/* Photo preview */}
+          <div className="flex-1 md:flex-none relative min-h-0 md:h-auto md:max-h-[50vh] md:bg-black md:flex md:items-center md:justify-center">
             <img
               src={photoBase64}
               alt="Captured photo"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain md:w-auto md:h-full md:max-w-full"
             />
 
             {/* Success badge */}
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 z-10">
               <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg">
                 <CheckCircle2 className="w-4 h-4" />
                 Captured
@@ -335,8 +343,8 @@ export default function CameraCapture() {
             </div>
           </div>
 
-          {/* Bottom actions - iOS style */}
-          <div className="pb-8 px-6">
+          {/* Bottom actions - Always visible */}
+          <div className="pt-6 px-6 pb-safe md:pb-32 bg-black md:bg-gray-900 flex-shrink-0">
             <div className="flex items-center gap-4 mb-4">
               {/* Retake button */}
               <button
